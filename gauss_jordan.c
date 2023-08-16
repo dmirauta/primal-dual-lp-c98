@@ -21,22 +21,19 @@ void GJTab_print(GJTab_t *tab) {
 }
 #endif
 
-typedef struct MaxRes {
-  FPN val;
-  IDX arg;
-} MaxRes_t;
+BYTE FPN_abs(FPN a) { return a > 0 ? a : -a; }
 
-MaxRes_t col_max(GJTab_t *tab, IDX j, IdxStack_t *no_max) {
-  FPN val = NEG_INF;
-  IDX arg = tab->N;
+// only takes maximum over pivot candidates (row not previously chosen)
+IDX col_maxabs(GJTab_t *tab, IDX j, IdxStack_t *no_max) {
+  FPN maxabs = NEG_INF;
+  IDX argmax;
   for (IDX i = 0; i < tab->N; i++) {
     if (!IdxStack_contains(no_max, i) &&
-        (tab->ptr[i * (tab->N + 1) + j] > val)) {
-      val = tab->ptr[i * (tab->N + 1) + j];
-      arg = i;
+        (FPN_abs(tab->ptr[i * (tab->N + 1) + j]) > maxabs)) {
+      argmax = i;
     }
   }
-  return (MaxRes_t){val, arg};
+  return argmax;
 }
 
 // while we are iterating columnwise, reads/writes zigzag between two columns?
@@ -84,11 +81,9 @@ void gauss_jordan(GJTab_t *tab, IdxStack_t *pivots, FPN *sol) {
   IdxStack_init(pivots);
 
   //// Make upper echelon
-  MaxRes_t temp;
   for (IDX j = 0; j < tab->N - 1; j++) {
-    temp = col_max(tab, j, pivots);
     // printf("\n%05.2lf %lu\n", temp.val, temp.arg);
-    IdxStack_push(pivots, temp.arg);
+    IdxStack_push(pivots, col_maxabs(tab, j, pivots));
     eliminate(tab, pivots);
     // GJTab_print(mat);
   }
@@ -131,9 +126,10 @@ int main() {
   FPN sol[4] = {0};
   gauss_jordan(&tab, &pivots, sol);
 
+  printf("Got: ");
   for (IDX k = 0; k < tab.N; k++) {
     printf("%05.4lf ", sol[k]);
   }
-  printf("\n");
+  printf("\nExpected: -0.05128205  0.76923077  0.12820513 -0.46153846\n");
 }
 #endif

@@ -1,13 +1,4 @@
-#include "stack.h"
-#include <stdio.h>
-
-// Tableau (A|b) for Gauss-Jordan elimination (for Ax=b).
-// Dynamic allocation friendly, but not actually needed,
-// statically sized FPN mat[N][N+1] could be fine instead.
-typedef struct GJTableau {
-  FPN *ptr;
-  IDX N;
-} GJTab_t;
+#include "gauss_jordan.h"
 
 #ifdef ON_CPU
 void GJTab_print(GJTab_t *tab) {
@@ -23,7 +14,6 @@ void GJTab_print(GJTab_t *tab) {
 
 BYTE FPN_abs(FPN a) { return a > 0 ? a : -a; }
 
-// only takes maximum over pivot candidates (row not previously chosen)
 IDX col_maxabs(GJTab_t *tab, IDX j, IdxStack_t *no_max) {
   FPN maxabs = NEG_INF;
   IDX argmax;
@@ -36,15 +26,15 @@ IDX col_maxabs(GJTab_t *tab, IDX j, IdxStack_t *no_max) {
   return argmax;
 }
 
-// while we are iterating columnwise, reads/writes zigzag between two rows?
-// e.g.
-// m11 m12 m13 ...
-//  | / | / ...
-// m21 m22 ...
-// although one rows is only read, while the other only written
-// is this efficient in terms of memory ops?
 void sub_scaled_row(GJTab_t *tab, IDX from_col, IDX to_sub, IDX sub_from,
                     FPN q) {
+  // while we are iterating columnwise, reads/writes zigzag between two rows?
+  // e.g.
+  // m11 m12 m13 ...
+  //  | / | / ...
+  // m21 m22 ...
+  // although one rows is only read, while the other only written
+  // is this efficient in terms of memory ops?
   for (IDX j = from_col; j < tab->N + 1; j++) {
     tab->ptr[sub_from * (tab->N + 1) + j] -=
         q * tab->ptr[to_sub * (tab->N + 1) + j];
@@ -116,23 +106,3 @@ void gauss_jordan(GJTab_t *tab, IdxStack_t *pivots, FPN *sol) {
         tab->ptr[i * (tab->N + 1) + tab->N] / tab->ptr[i * (tab->N + 1) + k];
   }
 }
-
-#ifdef ON_CPU
-int main() {
-  FPN data[] = {2.0, 3.0, 5.0, 4.0, 1.0, 9.0, 7.0, 6.0, 8.0, 2.0,
-                7.0, 9.0, 1.0, 8.0, 3.0, 1.0, 5.0, 1.0, 2.0, 3.0};
-  GJTab_t tab = {&data, 4};
-  // GJTab_print(&mat);
-
-  IdxStack_t pivots = {malloc(sizeof(IDX) * tab.N),
-                       malloc(sizeof(BYTE) * tab.N), tab.N, 0};
-  FPN sol[4] = {0};
-  gauss_jordan(&tab, &pivots, sol);
-
-  printf("Got: ");
-  for (IDX k = 0; k < tab.N; k++) {
-    printf("%05.4lf ", sol[k]);
-  }
-  printf("\nExpected: -0.05128205  0.76923077  0.12820513 -0.46153846\n");
-}
-#endif

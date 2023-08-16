@@ -36,7 +36,7 @@ IDX col_maxabs(GJTab_t *tab, IDX j, IdxStack_t *no_max) {
   return argmax;
 }
 
-// while we are iterating columnwise, reads/writes zigzag between two columns?
+// while we are iterating columnwise, reads/writes zigzag between two rows?
 // e.g.
 // m11 m12 m13 ...
 //  | / | / ...
@@ -57,9 +57,12 @@ void eliminate(GJTab_t *tab, IdxStack_t *pivots) {
   FPN q;
   for (IDX i = 0; i < tab->N; i++) {
     if (!IdxStack_contains(pivots, i)) {
-      q = tab->ptr[i * (tab->N + 1) + current_pivot_j] /
-          tab->ptr[current_pivot_i * (tab->N + 1) + current_pivot_j];
-      sub_scaled_row(tab, current_pivot_j, current_pivot_i, i, q);
+      // skip if already essentially 0
+      if (!(FPN_abs(tab->ptr[i * (tab->N + 1) + current_pivot_j]) < EPSILON)) {
+        q = tab->ptr[i * (tab->N + 1) + current_pivot_j] /
+            tab->ptr[current_pivot_i * (tab->N + 1) + current_pivot_j];
+        sub_scaled_row(tab, current_pivot_j, current_pivot_i, i, q);
+      }
     }
   }
 }

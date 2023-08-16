@@ -11,3 +11,5 @@ typedef size_t IDX; // unneccesary redefinition? (defined in OpenCL?)
 typedef unsigned char BYTE;
 
 #define NEG_INF -1.0 / 0.0;
+
+#define EPSILON 1e-19

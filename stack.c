@@ -30,15 +30,4 @@ void IdxStack_print(IdxStack_t *stack) {
   }
   printf("\n");
 }
-
-void stack_test() {
-  IdxStack_t test = {malloc(sizeof(IDX) * 2), malloc(sizeof(IDX) * 2), 2, 0};
-  IdxStack_init(&test);
-  IdxStack_push(&test, 7);
-  IdxStack_print(&test);
-  IdxStack_push(&test, 2);
-  IdxStack_print(&test);
-  printf("pop %lu\n", IdxStack_pop(&test));
-  IdxStack_print(&test);
-}
 #endif

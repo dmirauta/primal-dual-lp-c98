@@ -13,3 +13,7 @@ typedef unsigned char BYTE;
 #define NEG_INF -1.0 / 0.0;
 
 #define EPSILON 1e-19
+
+#define FZERO 0.0
+
+#define FONE 1.0

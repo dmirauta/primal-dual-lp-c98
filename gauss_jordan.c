@@ -48,6 +48,7 @@ void eliminate(GJTab_t *tab, IdxStack_t *pivots) {
   for (IDX i = 0; i < tab->N; i++) {
     if (!IdxStack_contains(pivots, i)) {
       // skip if already essentially 0
+      // pointless on GPU since we have to pause for both branches?
       if (!(FPN_abs(tab->ptr[i * (tab->N + 1) + current_pivot_j]) < EPSILON)) {
         q = tab->ptr[i * (tab->N + 1) + current_pivot_j] /
             tab->ptr[current_pivot_i * (tab->N + 1) + current_pivot_j];
@@ -64,9 +65,13 @@ void backsub_row(GJTab_t *tab, IdxStack_t *pivots) {
   IDX i;
   for (IDX k = 0; k < pivots->size; k++) {
     i = pivots->ptr[k];
-    q = tab->ptr[i * (tab->N + 1) + current_pivot_j] /
-        tab->ptr[current_pivot_i * (tab->N + 1) + current_pivot_j];
-    sub_scaled_row(tab, current_pivot_j, current_pivot_i, i, q);
+    // skip if already essentially 0
+    // pointless on GPU since we have to pause for both branches?
+    if (!(FPN_abs(tab->ptr[i * (tab->N + 1) + current_pivot_j]) < EPSILON)) {
+      q = tab->ptr[i * (tab->N + 1) + current_pivot_j] /
+          tab->ptr[current_pivot_i * (tab->N + 1) + current_pivot_j];
+      sub_scaled_row(tab, current_pivot_j, current_pivot_i, i, q);
+    }
   }
 }
 

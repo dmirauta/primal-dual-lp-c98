@@ -78,29 +78,70 @@ void init_grad(LPDef_t *lp, SolverVars_t *vars) {
 // Could reshape to put this part in lower block row and reuse cancellation in
 // upper parts?
 void update_grad(LPDef_t *lp, SolverVars_t *vars) {
-  IDX size = lp->N + 2 * lp->M;
+  IDX tab_width = lp->N + 2 * lp->M + 1;
 
   // mid left is diag u
   for (IDX j = 0; j < lp->M; j++) {
-    vars->grad_res->ptr[(lp->N + j) * size + j] = vars->u[j];
+    vars->grad_res->ptr[(lp->N + j) * tab_width + j] = vars->u[j];
   }
 
   // mid mid is diag x
   for (IDX j = 0; j < lp->M; j++) {
-    vars->grad_res->ptr[(lp->N + j) * size + (lp->M + j)] = vars->x[j];
+    vars->grad_res->ptr[(lp->N + j) * tab_width + (lp->M + j)] = vars->x[j];
   }
 }
 
-FPN L2(FPN *res, IDX size) {
+FPN L2(LPDef_t *lp, SolverVars_t *vars) {
+  IDX tab_width = lp->N + 2 * lp->M + 1;
+  IDX res_idx;
   FPN sq_diff = FZERO;
 
-  for (IDX i = 0; i < size; i++) {
-    sq_diff += res[i] * res[i];
+  for (IDX i = 0; i < lp->N + 2 * lp->M; i++) {
+    res_idx = i * tab_width + (tab_width - 1);
+    vars->grad_res->ptr[res_idx] = lp->b_ptr[i];
+    sq_diff += vars->grad_res->ptr[res_idx] * vars->grad_res->ptr[res_idx];
   }
 
   return sq_diff;
 }
 
-// iterative rootfinding in the linearised kkt residual
-// solver variables to be allocated by caller
-void solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {}
+SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
+
+  // initialise variables
+  for (IDX i = 0; i < lp->N; i++) {
+    vars->v[i] = FONE;
+  }
+  for (IDX i = 0; i < lp->M; i++) {
+    vars->x[i] = FONE;
+    vars->u[i] = FONE;
+  }
+
+  FPN step = opt.init_stepsize;
+  FPN old_cost = L2(lp, vars);
+  FPN new_cost;
+  IDX i = 0;
+  while ((old_cost < opt.tol) && (i < opt.maxiter)) {
+    init_grad(lp, vars);
+    gauss_jordan(vars->grad_res, vars->pivots, vars->d_xuv);
+
+    // update variables
+    for (IDX i = 0; i < lp->N; i++) {
+      vars->v[i] += step * vars->d_xuv[2 * lp->M + i];
+    }
+    for (IDX i = 0; i < lp->M; i++) {
+      vars->x[i] += step * vars->d_xuv[i];
+      vars->u[i] += step * vars->d_xuv[lp->M + i];
+    }
+
+    new_cost = L2(lp, vars);
+
+    if (new_cost > old_cost) {
+      step /= 2; // acceptable strategy? line search would be better?
+    }
+
+    old_cost = new_cost;
+    i++;
+  }
+
+  return (SolverStats_t){old_cost, i};
+}

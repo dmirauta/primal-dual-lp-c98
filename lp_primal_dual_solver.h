@@ -18,6 +18,7 @@ typedef struct LPDef {
 typedef struct SolverVars {
   // holds (grad | res) matrix of size (N+2M, N+2M+1)
   GJTab_t *grad_res;
+  IdxStack_t *pivots;
   FPN *x;
   FPN *u;
   FPN *v;
@@ -32,6 +33,16 @@ typedef struct SolverOpt {
   FPN eps_q;
   // convergence tolerance
   FPN tol;
+  FPN init_stepsize;
   // maximum iterations
   IDX maxiter;
 } SolverOpt_t;
+
+typedef struct SolverStats {
+  FPN gap;
+  IDX iters;
+} SolverStats_t;
+
+// iterative rootfinding in the linearised kkt residual
+// solver variables to be allocated by caller
+SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt);

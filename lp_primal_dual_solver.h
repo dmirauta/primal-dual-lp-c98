@@ -19,10 +19,13 @@ typedef struct SolverVars {
   // holds (grad | res) matrix of size (N+2M, N+2M+1)
   GJTab_t *grad_res;
   IdxStack_t *pivots;
+  // size M
   FPN *x;
+  // size M
   FPN *u;
+  // size N
   FPN *v;
-  // direction found by gauss jordan
+  // direction found by gauss jordan, size N+2M
   FPN *d_xuv;
 } SolverVars_t;
 

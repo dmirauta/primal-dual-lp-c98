@@ -35,8 +35,8 @@ void kkt_neg_res(LPDef_t *lp, SolverVars_t *vars, FPN cs_eps) {
 void init_grad(LPDef_t *lp, SolverVars_t *vars) {
   IDX tab_width = lp->N + 2 * lp->M + 1;
 
-  // init all to zero for simplicity
-  for (IDX i = 0; i < tab_width; i++) {
+  // init grad_res to zero for simplicity
+  for (IDX i = 0; i < tab_width - 1; i++) {
     for (IDX j = 0; j < tab_width; j++) {
       vars->grad_res->ptr[i * tab_width + j] = FZERO;
     }
@@ -45,7 +45,7 @@ void init_grad(LPDef_t *lp, SolverVars_t *vars) {
   // top left is A
   for (IDX i = 0; i < lp->N; i++) {
     for (IDX j = 0; j < lp->M; j++) {
-      vars->grad_res->ptr[i * tab_width + j] -= lp->A_ptr[i * lp->M + j];
+      vars->grad_res->ptr[i * tab_width + j] = lp->A_ptr[i * lp->M + j];
     }
   }
 
@@ -117,11 +117,13 @@ SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
   }
 
   FPN step = opt.init_stepsize;
-  FPN old_cost = L2(lp, vars);
+  FPN old_cost = -NEG_INF;
   FPN new_cost;
   IDX i = 0;
-  while ((old_cost < opt.tol) && (i < opt.maxiter)) {
+  while ((old_cost > opt.tol) && (i < opt.maxiter)) {
     init_grad(lp, vars);
+    break;
+    kkt_neg_res(lp, vars, opt.eps);
     gauss_jordan(vars->grad_res, vars->pivots, vars->d_xuv);
 
     // update variables

@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
+
 void stack_test() {
   IdxStack_t test = {malloc(sizeof(IDX) * 2), malloc(sizeof(IDX) * 2), 2, 0};
   IdxStack_init(&test);
@@ -17,14 +19,15 @@ void gauss_jordan_test() {
   FPN data[] = {2.0, 3.0, 5.0, 4.0, 1.0, 9.0, 7.0, 6.0, 8.0, 2.0,
                 7.0, 9.0, 1.0, 8.0, 3.0, 1.0, 5.0, 1.0, 2.0, 3.0};
   GJTab_t tab = {&data, 4};
-  // GJTab_print(&mat);
 
   IdxStack_t pivots = {malloc(sizeof(IDX) * tab.N),
                        malloc(sizeof(BYTE) * tab.N), tab.N, 0};
+  GJTab_print(&tab, &pivots);
+
   FPN sol[4] = {0};
   gauss_jordan(&tab, &pivots, sol);
 
-  printf("Got: ");
+  printf("\nGot: ");
   for (IDX k = 0; k < tab.N; k++) {
     printf("%05.4lf ", sol[k]);
   }
@@ -49,7 +52,7 @@ void dual_solve_test_general(FPN *Aptr, FPN *bptr, FPN *cptr, IDX N, IDX M) {
       malloc(fps * Ngrad) // d_xuv
   };
 
-  SolverOpt_t so = {0.1, 0.1, 1e-19, 0.1, 100};
+  SolverOpt_t so = {0.1, 0.1, 1e-19, 0.1, 2};
 
   SolverStats_t ss = solve(&lp, &sv, so);
 
@@ -63,10 +66,8 @@ void dual_solve_test_general(FPN *Aptr, FPN *bptr, FPN *cptr, IDX N, IDX M) {
     printf("%05.4lf ", sv.d_xuv[k]);
   }
 
-  printf("\ngrad: \n");
-  for (IDX k = 0; k < Ngrad * (Ngrad + 1); k++) {
-    printf("%05.4lf ", tab.ptr[k]);
-  }
+  printf("\ngrad_neg_res: \n");
+  GJTab_print(&tab, &pivots);
 
   printf("\n\ngap = %05.4lf, iters = %lu\n", ss.gap, ss.iters);
 }
@@ -126,32 +127,22 @@ void dual_solve_test_flattened() {
 }
 
 void dual_solve_test_simple() {
-  FPN A[] = {0.4753, 0.7483, 0.1001, 0.0000,  0.0000, 0.0000,  0.0000, 0.0000,
-             0.0000, 0.3721, 0.2321, 0.1831,  0.0000, 0.0000,  0.0000, 0.0000,
-             0.0000, 0.0000, 0.2676, 0.4110,  0.4571, 0.0000,  0.0000, 0.0000,
-             0.0000, 0.0000, 0.0000, -1.0000, 0.0000, 0.0000,  1.0000, 0.0000,
-             0.0000, 0.0000, 0.0000, 0.0000,  0.0000, -1.0000, 0.0000, 0.0000,
-             1.0000, 0.0000, 0.0000, 0.0000,  0.0000, 0.0000,  0.0000, -1.0000,
-             0.0000, 0.0000, 1.0000, 0.0000,  0.0000, 0.0000,  0.2840, 0.8903,
-             0.1246, 0.0000, 0.0000, 0.0000,  1.0000, 0.0000,  0.0000, 0.7034,
-             0.4756, 0.6028, 0.0000, 0.0000,  0.0000, 0.0000,  1.0000, 0.0000,
-             0.2263, 0.2783, 0.8207, 0.0000,  0.0000, 0.0000,  0.0000, 0.0000,
-             1.0000};
+  FPN A[] = {0.4753, 0.7483, 0.0000, 0.0000, 0.1001, 0.3721, 0.0000, 0.0000,
+             0.2321, 0.1831, 1.0000, 0.0000, 0.2676, 0.4110, 0.0000, 1.0000};
 
-  FPN b[] = {0.5849, 0.4773, 0.7167, 0.0000, 0.0000,
-             0.0000, 3.8762, 1.3224, 2.8001};
+  FPN b[] = {0.6550, 0.2634, 0.6905, 1.0794};
 
-  FPN c[] = {0.8888, 0.9051, 0.1765};
+  FPN c[] = {0.2840, 0.8903, 0.0000, 0.0000};
 
-  IDX N = 9;
-  IDX M = 9;
+  IDX N = 4;
+  IDX M = 4;
 
   dual_solve_test_general(&A, &b, &c, N, M);
 }
 
 int main() {
-  printf("GJ:\n");
-  gauss_jordan_test();
+  // printf("GJ:\n");
+  // gauss_jordan_test();
 
   printf("\n\nLP solve:\n");
   dual_solve_test_simple();

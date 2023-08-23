@@ -8,12 +8,25 @@ void IdxStack_init(IdxStack_t *stack) {
 }
 
 void IdxStack_push(IdxStack_t *stack, IDX new) {
+#ifdef DEBUG_STACK
+  if (new >= stack->capacity) {
+    printf("WARNING: atempt to insert large index (%lu).\n", new);
+  }
+  if (stack->capacity <= stack->size) {
+    printf("WARNING: atempt to push to a full stack or insert large index.\n");
+  }
+#endif /* ifdef DEBUG_STACK */
   stack->ptr[stack->size] = new;
   stack->contained[new] = 1;
   stack->size++;
 }
 
 IDX IdxStack_pop(IdxStack_t *stack) {
+#ifdef DEBUG_STACK
+  if (stack->size <= 0) {
+    printf("WARNING: atempt to pop empty stack.\n");
+  }
+#endif /* ifdef DEBUG_STACK */
   IDX old_end_element = stack->ptr[--stack->size];
   stack->contained[old_end_element] = 0;
   return old_end_element;

@@ -25,7 +25,7 @@ def augment(A, b, G, h, c):
 
     cn[:M] = c
 
-    return An, bn, c
+    return An, bn, cn
 
 
 def print_c_arr(arr):
@@ -36,42 +36,44 @@ def print_c_arr(arr):
     print("{:.4f}".format(arr_flat[-1]) + " }")
 
 
-np.random.seed(1)
+if __name__ == "__main__":
+    np.random.seed(1)
 
-# Create shaped variables and coefficients
-X = cp.Variable(shape=(3, 3), nonneg=True)
-CS = np.random.uniform(0.1, 1, (3, 3))
-CS /= CS.sum()
-bs = np.random.uniform(0.1, 1, 3)
-hs = np.random.uniform(0.1, 1, 3)
+    # Create shaped variables and coefficients
+    X = cp.Variable(shape=(3, 3), nonneg=True)
+    CS = np.random.uniform(0.1, 1, (3, 3))
+    CS /= CS.sum()
 
-# Create two constraints.
-constraints = [cp.sum(X, 0) == bs, cp.sum(X, 1) <= 2 * hs]
+    bs = np.random.uniform(0.1, 1, 3)
+    hs = np.random.uniform(0.1, 1, 3)
 
-# Form objective.
-obj = cp.Minimize(cp.sum(cp.multiply(CS, X)))
+    # Create two constraints.
+    constraints = [cp.sum(X, 0) == bs, cp.sum(X, 1) <= 2 * hs]
 
-# Form and solve problem.
-prob = cp.Problem(obj, constraints)
+    # Form objective.
+    obj = cp.Minimize(cp.sum(cp.multiply(CS, X)))
 
-# get flattened representation, adds nonnegativity constraints
-#                               (already built into our solver,
-#                                so may be undesired)
-data, chain, inverse_data = prob.get_problem_data(cp.SCIPY)
+    # Form and solve problem.
+    prob = cp.Problem(obj, constraints)
 
-A, b, c = augment(
-    data["A"].toarray(), data["b"], data["G"].toarray(), data["h"], data["c"]
-)
+    # get flattened representation, adds nonnegativity constraints
+    #                               (already built into our solver,
+    #                                so may be undesired)
+    data, chain, inverse_data = prob.get_problem_data(cp.SCIPY)
 
-print(A)
-print(A.shape)
-print_c_arr(A)
-print(b)
-print_c_arr(b)
-print(c)
-print_c_arr(c)
+    A, b, c = augment(
+        data["A"].toarray(), data["b"], data["G"].toarray(), data["h"], data["c"]
+    )
 
-print("cost: ", prob.solve())
-print("status: ", prob.status)
+    print(A)
+    print(A.shape)
+    print_c_arr(A)
+    print(b)
+    print_c_arr(b)
+    print(c)
+    print_c_arr(c)
 
-print("solution: ", X.value)
+    print("cost: ", prob.solve())
+    print("status: ", prob.status)
+
+    print("solution: ", X.value)

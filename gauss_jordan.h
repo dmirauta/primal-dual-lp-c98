@@ -9,7 +9,7 @@ typedef struct GJTableau {
 } GJTab_t;
 
 #ifdef ON_CPU
-void GJTab_print(GJTab_t *tab);
+void GJTab_print(GJTab_t *tab, IdxStack_t *pivots);
 #endif
 
 void gauss_jordan(GJTab_t *tab, IdxStack_t *pivots, FPN *sol);

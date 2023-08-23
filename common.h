@@ -17,3 +17,6 @@ typedef unsigned char BYTE;
 #define FZERO 0.0
 
 #define FONE 1.0
+
+#define SETREDTEXT "\033[1;31m"
+#define RESETCOLOR "\033[1;0m"

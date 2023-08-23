@@ -32,13 +32,15 @@ void kkt_neg_res(LPDef_t *lp, SolverVars_t *vars, FPN cs_eps) {
   }
 }
 
+FPN FPN_abs(FPN a);
+
 void init_grad(LPDef_t *lp, SolverVars_t *vars) {
   IDX tab_width = lp->N + 2 * lp->M + 1;
 
-  // init grad_res to zero for simplicity
+  // init grad_res to 0
   for (IDX i = 0; i < tab_width - 1; i++) {
     for (IDX j = 0; j < tab_width; j++) {
-      vars->grad_res->ptr[i * tab_width + j] = FZERO;
+      vars->grad_res->ptr[i * tab_width + j] = 0;
     }
   }
 
@@ -69,6 +71,17 @@ void init_grad(LPDef_t *lp, SolverVars_t *vars) {
     for (IDX j = 0; j < lp->M; j++) {
       vars->grad_res->ptr[(lp->N + lp->M + j) * tab_width + (2 * lp->M + i)] =
           lp->A_ptr[i * lp->M + j];
+    }
+  }
+
+  // clamp small values
+  FPN MINVAL = 1e-6;
+  for (IDX i = 0; i < tab_width - 1; i++) {
+    for (IDX j = 0; j < tab_width; j++) {
+      if (FPN_abs(vars->grad_res->ptr[i * tab_width + j]) < MINVAL) {
+        vars->grad_res->ptr[i * tab_width + j] =
+            vars->grad_res->ptr[i * tab_width + j] > 0 ? MINVAL : -MINVAL;
+      }
     }
   }
 }
@@ -122,7 +135,6 @@ SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
   IDX i = 0;
   while ((old_cost > opt.tol) && (i < opt.maxiter)) {
     init_grad(lp, vars);
-    break;
     kkt_neg_res(lp, vars, opt.eps);
     gauss_jordan(vars->grad_res, vars->pivots, vars->d_xuv);
 

@@ -1,39 +1,7 @@
 import cvxpy as cp
 import numpy as np
 
-
-def augment(A, b, G, h, c):
-    """
-    turn inequalities to equalities
-    """
-
-    NA, M = A.shape
-    NG, M = G.shape
-
-    NAn = NA + NG
-    MAn = M + NG
-    An = np.zeros((NAn, MAn))
-    bn = np.zeros(NAn)
-    cn = np.zeros(MAn)
-
-    An[:NA, :M] = A
-    An[NA:, :M] = G
-    An[NA:, M:] = np.eye(NG)
-
-    bn[:NA] = b
-    bn[NA:] = h
-
-    cn[:M] = c
-
-    return An, bn, cn
-
-
-def print_c_arr(arr):
-    print("= { ", end="")
-    arr_flat = arr.flat
-    for v in arr_flat[:-1]:
-        print("{:.4f}, ".format(v), end="")
-    print("{:.4f}".format(arr_flat[-1]) + " }")
+from common import augment, print_c_arr
 
 
 if __name__ == "__main__":

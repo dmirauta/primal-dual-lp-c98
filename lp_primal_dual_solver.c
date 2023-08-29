@@ -32,8 +32,6 @@ void kkt_neg_res(LPDef_t *lp, SolverVars_t *vars, FPN cs_eps) {
   }
 }
 
-FPN FPN_abs(FPN a);
-
 void init_grad(LPDef_t *lp, SolverVars_t *vars) {
   IDX tab_width = lp->N + 2 * lp->M + 1;
 
@@ -75,7 +73,7 @@ void init_grad(LPDef_t *lp, SolverVars_t *vars) {
   }
 
   // clamp small values
-  FPN MINVAL = 1e-6;
+  FPN MINVAL = 1e-4;
   for (IDX i = 0; i < tab_width - 1; i++) {
     for (IDX j = 0; j < tab_width; j++) {
       if (FPN_abs(vars->grad_res->ptr[i * tab_width + j]) < MINVAL) {
@@ -111,7 +109,6 @@ FPN L2(LPDef_t *lp, SolverVars_t *vars) {
 
   for (IDX i = 0; i < lp->N + 2 * lp->M; i++) {
     res_idx = i * tab_width + (tab_width - 1);
-    vars->grad_res->ptr[res_idx] = lp->b_ptr[i];
     sq_diff += vars->grad_res->ptr[res_idx] * vars->grad_res->ptr[res_idx];
   }
 
@@ -121,22 +118,34 @@ FPN L2(LPDef_t *lp, SolverVars_t *vars) {
 SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
 
   // initialise variables
-  for (IDX i = 0; i < lp->N; i++) {
-    vars->v[i] = FONE;
-  }
   for (IDX i = 0; i < lp->M; i++) {
     vars->x[i] = FONE;
     vars->u[i] = FONE;
+  }
+  for (IDX i = 0; i < lp->N; i++) {
+    vars->v[i] = FONE;
   }
 
   FPN step = opt.init_stepsize;
   FPN old_cost = -NEG_INF;
   FPN new_cost;
   IDX i = 0;
+
   while ((old_cost > opt.tol) && (i < opt.maxiter)) {
+
     init_grad(lp, vars);
     kkt_neg_res(lp, vars, opt.eps);
+
+#ifdef DEBUG_SOLVE
+    GJTab_print(vars->grad_res, vars->pivots);
+#endif /* ifdef DEBUG_SOLVE */
+
     gauss_jordan(vars->grad_res, vars->pivots, vars->d_xuv);
+
+#ifdef DEBUG_SOLVE
+    printf("\n");
+    print_vec(vars->d_xuv, lp->N + 2 * lp->M);
+#endif /* ifdef DEBUG_SOLVE */
 
     // update variables
     for (IDX i = 0; i < lp->N; i++) {
@@ -155,6 +164,11 @@ SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
 
     old_cost = new_cost;
     i++;
+
+#ifdef DEBUG_SOLVE
+    printf("\n\ni = %lu, gap = %lf\n", i, new_cost);
+    printf("\n=========\n");
+#endif /* ifdef DEBUG_SOLVE */
   }
 
   return (SolverStats_t){old_cost, i};

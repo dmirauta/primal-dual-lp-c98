@@ -23,8 +23,6 @@ void GJTab_print(GJTab_t *tab, IdxStack_t *pivots) {
 }
 #endif
 
-FPN FPN_abs(FPN a) { return a > 0 ? a : -a; }
-
 IDX col_maxabs(GJTab_t *tab, IDX j, IdxStack_t *no_max) {
   FPN maxabs = NEG_INF;
   FPN compared;

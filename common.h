@@ -18,5 +18,11 @@ typedef unsigned char BYTE;
 
 #define FONE 1.0
 
+FPN FPN_abs(FPN a);
+
+#ifdef ON_CPU
 #define SETREDTEXT "\033[1;31m"
 #define RESETCOLOR "\033[1;0m"
+
+void print_vec(FPN *vec, IDX len);
+#endif

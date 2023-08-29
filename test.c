@@ -28,9 +28,7 @@ void gauss_jordan_test() {
   gauss_jordan(&tab, &pivots, sol);
 
   printf("\nGot: ");
-  for (IDX k = 0; k < tab.N; k++) {
-    printf("%05.4lf ", sol[k]);
-  }
+  print_vec(sol, tab.N);
   printf("\nExpected: -0.05128205  0.76923077  0.12820513 -0.46153846\n");
 }
 
@@ -52,22 +50,18 @@ void dual_solve_test_general(FPN *Aptr, FPN *bptr, FPN *cptr, IDX N, IDX M) {
       malloc(fps * Ngrad) // d_xuv
   };
 
-  SolverOpt_t so = {0.1, 0.1, 1e-19, 0.1, 2};
+  SolverOpt_t so = {0.1, 0.1, 1e-19, 0.01, 5};
 
   SolverStats_t ss = solve(&lp, &sv, so);
 
   printf("solution: \n");
-  for (IDX k = 0; k < M; k++) {
-    printf("%05.4lf ", sv.x[k]);
-  }
+  print_vec(sv.x, M);
 
   printf("\nd_xuv: \n");
-  for (IDX k = 0; k < Ngrad; k++) {
-    printf("%05.4lf ", sv.d_xuv[k]);
-  }
+  print_vec(sv.d_xuv, Ngrad);
 
-  printf("\ngrad_neg_res: \n");
-  GJTab_print(&tab, &pivots);
+  // printf("\ngrad_neg_res: \n");
+  // GJTab_print(&tab, &pivots);
 
   printf("\n\ngap = %05.4lf, iters = %lu\n", ss.gap, ss.iters);
 }

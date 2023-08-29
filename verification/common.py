@@ -5,7 +5,7 @@ np.set_printoptions(linewidth=300)
 
 def augment(A, b, G, h, c):
     """
-    turn inequalities to equalities
+    turn inequalities to equalities by use of slack variables
     """
 
     NA, M = A.shape
@@ -29,12 +29,13 @@ def augment(A, b, G, h, c):
     return An, bn, cn
 
 
-def print_c_arr(arr):
-    print("= { ", end="")
+def print_c_arr(arr, name="arr", max_per_row=8):
+    print(f"FPN {name}[] =", end=" {")
     arr_flat = arr.flat
-    for v in arr_flat[:-1]:
-        print("{:.4f}, ".format(v), end="")
-    print("{:.4f}".format(arr_flat[-1]) + " }")
+    for i, v in enumerate(arr_flat):
+        print(f"{v:.4f}", end=", " if i + 1 < arr.size else " };\n")
+        if i % max_per_row == max_per_row - 1:
+            print()
 
 
 def gen_lin_grad(A, x, u):
@@ -59,3 +60,21 @@ def res_vec(A, b, x, c, u, v, cs_eps=0.1):
     r[M : 2 * M] = cs_eps - x * u
     r[2 * M :] = c - (A.T @ v) - u
     return r
+
+
+def print_prob(A, b, c):
+    print("A = ", A)
+    print("b = ", b)
+    print("c = ", c)
+    N, M = A.shape
+
+    print()
+    print_c_arr(A, "A")
+    print_c_arr(b, "b")
+    print_c_arr(c, "c")
+    print(
+        f"""
+    IDX N = {N};
+    IDX M = {M};
+    """
+    )

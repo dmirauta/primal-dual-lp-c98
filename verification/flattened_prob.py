@@ -1,22 +1,25 @@
 import cvxpy as cp
 import numpy as np
 
-from common import augment, print_c_arr
+from common import augment, print_c_arr, print_prob
 
 
 def build_problem(nonneg):
     np.random.seed(1)
 
+    N = 2
     # Create shaped variables and coefficients
-    X = cp.Variable(shape=(3, 3), nonneg=nonneg)
-    CS = np.random.uniform(0.1, 1, (3, 3))
+    X = cp.Variable(shape=(N, N), nonneg=nonneg)
+    CS = np.random.uniform(0.1, 1, (N, N))
     CS /= CS.sum()
 
-    bs = np.random.uniform(0.1, 1, 3)
-    hs = np.random.uniform(0.1, 1, 3)
+    # Bs = np.random.uniform(0.1, 1, (N, N))
+    bs = np.random.uniform(0.1, 1, N)
+    hs = np.random.uniform(0.1, 1, N)
 
-    # Create two constraints.
+    # Create constraints, make sure we have more than N^2 equations...
     constraints = [cp.sum(X, 0) == bs, cp.sum(X, 1) <= 2 * hs]
+    # constraints += [X <= Bs]
 
     # Form objective.
     obj = cp.Minimize(cp.sum(cp.multiply(CS, X)))
@@ -37,13 +40,7 @@ if __name__ == "__main__":
         data["A"].toarray(), data["b"], data["G"].toarray(), data["h"], data["c"]
     )
 
-    print(A)
-    print(A.shape)
-    print_c_arr(A)
-    print(b)
-    print_c_arr(b)
-    print(c)
-    print_c_arr(c)
+    print_prob(A, b, c)
 
     # we don't need nonneg augmentation for our solver
     # but do need it for correct comparisson

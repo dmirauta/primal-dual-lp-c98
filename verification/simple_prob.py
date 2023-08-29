@@ -1,24 +1,14 @@
 import cvxpy as cp
 import numpy as np
 
-from common import augment, gen_lin_grad, print_c_arr, res_vec
+from common import augment, gen_lin_grad, print_prob, res_vec
 
 
-if __name__ == "__main__":
+def build_problem(nonneg):
     np.random.seed(1)
 
     # Create shaped variables and coefficients
-    N = 2
-    x = cp.Variable(shape=(N), nonneg=True)
-    A_ = np.random.uniform(0.1, 1, (N, N))
-    G = np.random.uniform(0.1, 1, (N, N))
-
-    sol = np.random.uniform(0.1, 1, N)
-    dlt = np.random.uniform(0.1, 1, N)
-
-    b_ = A_ @ sol
-    h = G @ sol + dlt
-    c_ = np.random.uniform(0.1, 1, N)
+    x = cp.Variable(shape=(N), nonneg=nonneg)
 
     # Create two constraints.
     constraints = [A_ @ x == b_, G @ x <= h]
@@ -27,7 +17,29 @@ if __name__ == "__main__":
     obj = cp.Minimize(cp.sum(cp.multiply(c_, x)))
 
     # Form and solve problem.
-    prob = cp.Problem(obj, constraints)
+    return cp.Problem(obj, constraints), x
+
+
+def print_step():
+    print("grad:")
+    print(G)
+    print("res:")
+    print(r)
+    print("d_xuv:")
+    print(d_xuv)
+
+
+if __name__ == "__main__":
+    N = 2
+    A_ = np.random.uniform(0.1, 1, (N, N))
+    G = np.random.uniform(0.1, 1, (N, N))
+    sol = np.random.uniform(0.1, 1, N)
+    dlt = np.random.uniform(0.1, 1, N)
+    b_ = A_ @ sol
+    h = G @ sol + dlt
+    c_ = np.random.uniform(0.1, 1, N)
+
+    prob, x = build_problem(False)
 
     # data, chain, inverse_data = prob.get_problem_data(cp.SCIPY)
     #
@@ -38,18 +50,16 @@ if __name__ == "__main__":
 
     print("intended sol: ", sol)
 
-    print(A)
-    print(A.shape)
-    print_c_arr(A)
-    print(b)
-    print_c_arr(b)
-    print(c)
-    print_c_arr(c)
+    print_prob(A, b, c)
 
+    prob, x = build_problem(True)
     print("cost: ", prob.solve())
     print("status: ", prob.status)
 
     print("solution: ", x.value)
+
+    ##################################################
+    ## Double check solver implementation/debug output
 
     n, m = A.shape  # not the same as N...
     _x = np.ones(m)
@@ -60,14 +70,8 @@ if __name__ == "__main__":
     d_xuv = np.linalg.solve(G, r)
 
     print("Expected first step:")
-    print("grad:")
-    print(G)
-    print("res:")
-    print(r)
-    print("d_xuv:")
-    print(d_xuv)
+    print_step()
 
-    print("Second")
     _x += 0.1 * d_xuv[:m]
     u += 0.1 * d_xuv[m : 2 * m]
     v += 0.1 * d_xuv[2 * m :]
@@ -76,9 +80,5 @@ if __name__ == "__main__":
     r = res_vec(A, b, _x, c, u, v)
     d_xuv = np.linalg.solve(G, r)
 
-    print("grad:")
-    print(G)
-    print("res:")
-    print(r)
-    print("d_xuv:")
-    print(d_xuv)
+    print("Second")
+    print_step()

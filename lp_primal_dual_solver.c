@@ -152,6 +152,10 @@ SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
     for (IDX i = 0; i < lp->M; i++) {
       vars->x[i] += step * vars->d_xuv[i];
       vars->u[i] += step * vars->d_xuv[lp->M + i];
+
+      if (vars->x[i] < EPSILON) {
+        vars->x[i] = EPSILON;
+      }
     }
 
     new_cost = L2(lp, vars);

@@ -129,6 +129,8 @@ void gauss_jordan(GJTab_t *tab, IdxStack_t *pivots, FPN *sol) {
   for (IDX j = 0; j < tab->N - 1; j++) {
     backsub_row(tab, pivots);
   }
+  // pop final element off just to clean stack
+  IdxStack_pop(pivots);
 
   // though we popped everything in the pivot stack (in backsub_row), the data
   // is still in its array, so we can use for the final variable scaling

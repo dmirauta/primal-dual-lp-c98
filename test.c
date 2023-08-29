@@ -50,7 +50,7 @@ void dual_solve_test_general(FPN *Aptr, FPN *bptr, FPN *cptr, IDX N, IDX M) {
       malloc(fps * Ngrad) // d_xuv
   };
 
-  SolverOpt_t so = {0.1, 0.1, 1e-19, 0.01, 5};
+  SolverOpt_t so = {0.1, 0.1, 1e-19, 0.1, 50};
 
   SolverStats_t ss = solve(&lp, &sv, so);
 

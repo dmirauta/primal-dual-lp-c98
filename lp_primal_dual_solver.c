@@ -34,11 +34,14 @@ void kkt_neg_res(LPDef_t *lp, SolverVars_t *vars, FPN cs_eps) {
 
 void init_grad(LPDef_t *lp, SolverVars_t *vars) {
   IDX tab_width = lp->N + 2 * lp->M + 1;
+  FPN MINVAL = 1e-4;
 
   // init grad_res to 0
   for (IDX i = 0; i < tab_width - 1; i++) {
     for (IDX j = 0; j < tab_width; j++) {
-      vars->grad_res->ptr[i * tab_width + j] = 0;
+      // clamp or add across the board?
+      // vars->grad_res->ptr[i * tab_width + j] = 0;
+      vars->grad_res->ptr[i * tab_width + j] = MINVAL;
     }
   }
 
@@ -72,16 +75,15 @@ void init_grad(LPDef_t *lp, SolverVars_t *vars) {
     }
   }
 
-  // clamp small values
-  FPN MINVAL = 1e-4;
-  for (IDX i = 0; i < tab_width - 1; i++) {
-    for (IDX j = 0; j < tab_width; j++) {
-      if (FPN_abs(vars->grad_res->ptr[i * tab_width + j]) < MINVAL) {
-        vars->grad_res->ptr[i * tab_width + j] =
-            vars->grad_res->ptr[i * tab_width + j] > 0 ? MINVAL : -MINVAL;
-      }
-    }
-  }
+  // // clamp small values
+  // for (IDX i = 0; i < tab_width - 1; i++) {
+  //   for (IDX j = 0; j < tab_width; j++) {
+  //     if (FPN_abs(vars->grad_res->ptr[i * tab_width + j]) < MINVAL) {
+  //       vars->grad_res->ptr[i * tab_width + j] =
+  //           vars->grad_res->ptr[i * tab_width + j] > 0 ? MINVAL : -MINVAL;
+  //     }
+  //   }
+  // }
 }
 
 // In principle, most of the gradient is constant, we only need to update middle
@@ -142,11 +144,6 @@ SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
 
     gauss_jordan(vars->grad_res, vars->pivots, vars->d_xuv);
 
-#ifdef DEBUG_SOLVE
-    printf("\n");
-    print_vec(vars->d_xuv, lp->N + 2 * lp->M);
-#endif /* ifdef DEBUG_SOLVE */
-
     // update variables
     for (IDX i = 0; i < lp->N; i++) {
       vars->v[i] += step * vars->d_xuv[2 * lp->M + i];
@@ -166,6 +163,18 @@ SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
     i++;
 
 #ifdef DEBUG_SOLVE
+    printf("\ndirectional grad\n");
+    print_vec(vars->d_xuv, lp->N + 2 * lp->M);
+
+    printf("\nx\n");
+    print_vec(vars->x, lp->M);
+
+    printf("\nu\n");
+    print_vec(vars->u, lp->M);
+
+    printf("\nv\n");
+    print_vec(vars->v, lp->N);
+
     printf("\n\ni = %lu, gap = %lf\n", i, new_cost);
     printf("\n=========\n");
 #endif /* ifdef DEBUG_SOLVE */

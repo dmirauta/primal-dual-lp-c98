@@ -51,11 +51,13 @@ if __name__ == "__main__":
 
     print("solution: ", x.value)
 
-    _x = np.ones(A.shape[1])
-    u = np.ones(A.shape[1])
-    v = np.ones(A.shape[0])
+    n, m = A.shape  # not the same as N...
+    _x = np.ones(m)
+    u = np.ones(m)
+    v = np.ones(n)
     G = gen_lin_grad(A, _x, u)
     r = res_vec(A, b, _x, c, u, v)
+    d_xuv = np.linalg.solve(G, r)
 
     print("Expected first step:")
     print("grad:")
@@ -63,4 +65,20 @@ if __name__ == "__main__":
     print("res:")
     print(r)
     print("d_xuv:")
-    print(np.linalg.solve(G, r))
+    print(d_xuv)
+
+    print("Second")
+    _x += 0.1 * d_xuv[:m]
+    u += 0.1 * d_xuv[m : 2 * m]
+    v += 0.1 * d_xuv[2 * m :]
+
+    G = gen_lin_grad(A, _x, u)
+    r = res_vec(A, b, _x, c, u, v)
+    d_xuv = np.linalg.solve(G, r)
+
+    print("grad:")
+    print(G)
+    print("res:")
+    print(r)
+    print("d_xuv:")
+    print(d_xuv)

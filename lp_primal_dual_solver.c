@@ -34,14 +34,13 @@ void kkt_neg_res(LPDef_t *lp, SolverVars_t *vars, FPN cs_eps) {
 
 void init_grad(LPDef_t *lp, SolverVars_t *vars) {
   IDX tab_width = lp->N + 2 * lp->M + 1;
-  FPN MINVAL = 1e-4;
 
   // init grad_res to 0
   for (IDX i = 0; i < tab_width - 1; i++) {
     for (IDX j = 0; j < tab_width; j++) {
       // clamp or add across the board?
       // vars->grad_res->ptr[i * tab_width + j] = 0;
-      vars->grad_res->ptr[i * tab_width + j] = MINVAL;
+      vars->grad_res->ptr[i * tab_width + j] = EPSILON;
     }
   }
 
@@ -76,6 +75,7 @@ void init_grad(LPDef_t *lp, SolverVars_t *vars) {
   }
 
   // // clamp small values
+  // FPN MINVAL = 1e-4;
   // for (IDX i = 0; i < tab_width - 1; i++) {
   //   for (IDX j = 0; j < tab_width; j++) {
   //     if (FPN_abs(vars->grad_res->ptr[i * tab_width + j]) < MINVAL) {
@@ -86,10 +86,11 @@ void init_grad(LPDef_t *lp, SolverVars_t *vars) {
   // }
 }
 
+// UNUSED
 // In principle, most of the gradient is constant, we only need to update middle
 // blocks, though in practice our gauss jordan method will change the tableau.
 // Could reshape to put this part in lower block row and reuse cancellation in
-// upper parts?
+// "upper" parts? (pivot order would also change)
 void update_grad(LPDef_t *lp, SolverVars_t *vars) {
   IDX tab_width = lp->N + 2 * lp->M + 1;
 

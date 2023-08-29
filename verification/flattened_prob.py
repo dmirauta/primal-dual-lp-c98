@@ -4,11 +4,11 @@ import numpy as np
 from common import augment, print_c_arr
 
 
-if __name__ == "__main__":
+def build_problem(nonneg):
     np.random.seed(1)
 
     # Create shaped variables and coefficients
-    X = cp.Variable(shape=(3, 3), nonneg=True)
+    X = cp.Variable(shape=(3, 3), nonneg=nonneg)
     CS = np.random.uniform(0.1, 1, (3, 3))
     CS /= CS.sum()
 
@@ -22,7 +22,11 @@ if __name__ == "__main__":
     obj = cp.Minimize(cp.sum(cp.multiply(CS, X)))
 
     # Form and solve problem.
-    prob = cp.Problem(obj, constraints)
+    return cp.Problem(obj, constraints), X
+
+
+if __name__ == "__main__":
+    prob, X = build_problem(False)
 
     # get flattened representation, adds nonnegativity constraints
     #                               (already built into our solver,
@@ -40,6 +44,10 @@ if __name__ == "__main__":
     print_c_arr(b)
     print(c)
     print_c_arr(c)
+
+    # we don't need nonneg augmentation for our solver
+    # but do need it for correct comparisson
+    prob, X = build_problem(True)
 
     print("cost: ", prob.solve())
     print("status: ", prob.status)

@@ -27,8 +27,8 @@ void kkt_neg_res(LPDef_t *lp, SolverVars_t *vars, FPN cs_eps) {
     vars->grad_res->ptr[res_idx] = lp->c_ptr[i];
     for (IDX j = 0; j < lp->N; j++) {
       vars->grad_res->ptr[res_idx] -= vars->v[j] * lp->A_ptr[j * lp->M + i];
-      vars->grad_res->ptr[res_idx] -= vars->u[i];
     }
+    vars->grad_res->ptr[res_idx] -= vars->u[i];
   }
 }
 

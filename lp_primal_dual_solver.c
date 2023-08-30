@@ -139,12 +139,13 @@ SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
   FPN step = opt.init_stepsize;
   FPN old_gap = -NEG_INF;
   FPN new_gap;
+  FPN cs_eps = opt.eps;
   IDX i = 0;
 
   while ((old_gap > opt.tol) && (i < opt.maxiter)) {
 
     init_grad(lp, vars);
-    kkt_neg_res(lp, vars, opt.eps);
+    kkt_neg_res(lp, vars, cs_eps);
 
 #ifdef DEBUG_SOLVE
     // showing tab before elimination
@@ -174,6 +175,7 @@ SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
     }
 
     old_gap = new_gap;
+    cs_eps *= opt.eps_q;
     i++;
 
 #ifdef DEBUG_SOLVE

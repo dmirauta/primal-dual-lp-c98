@@ -34,7 +34,7 @@ typedef struct SolverOpt {
   FPN eps;
   // epsilon multiplier (per iter)
   FPN eps_q;
-  // convergence tolerance
+  // convergence tolerance (for squared residual norm)
   FPN tol;
   FPN init_stepsize;
   // maximum iterations
@@ -42,7 +42,9 @@ typedef struct SolverOpt {
 } SolverOpt_t;
 
 typedef struct SolverStats {
+  // optimality gap (from KKT equality)
   FPN gap;
+  FPN cost;
   IDX iters;
 } SolverStats_t;
 

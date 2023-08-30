@@ -13,6 +13,8 @@ void stack_test() {
   IdxStack_print(&test);
   printf("pop %lu\n", IdxStack_pop(&test));
   IdxStack_print(&test);
+
+  // should explicitly free mem...
 }
 
 void gauss_jordan_test() {
@@ -30,6 +32,8 @@ void gauss_jordan_test() {
   printf("\nGot: ");
   print_vec(sol, tab.N);
   printf("\nExpected: -0.05128205  0.76923077  0.12820513 -0.46153846\n");
+
+  // should explicitly free mem...
 }
 
 void dual_solve_test_general(FPN *Aptr, FPN *bptr, FPN *cptr, IDX N, IDX M) {
@@ -63,7 +67,10 @@ void dual_solve_test_general(FPN *Aptr, FPN *bptr, FPN *cptr, IDX N, IDX M) {
   // printf("\ngrad_neg_res: \n");
   // GJTab_print(&tab, &pivots);
 
-  printf("\n\ngap = %05.4lf, iters = %lu\n", ss.gap, ss.iters);
+  printf("\n\ngap = %05.4lf, cost = %05.4lf, iters = %lu\n", ss.gap, ss.cost,
+         ss.iters);
+
+  // should explicitly free mem...
 }
 
 void dual_solve_test_flattened() {

@@ -38,9 +38,9 @@ void init_grad(LPDef_t *lp, SolverVars_t *vars) {
   // init grad_res to 0
   for (IDX i = 0; i < tab_width - 1; i++) {
     for (IDX j = 0; j < tab_width; j++) {
-      // clamp or add across the board?
-      // vars->grad_res->ptr[i * tab_width + j] = 0;
-      vars->grad_res->ptr[i * tab_width + j] = EPSILON;
+      // clamp small values (at end) or add across the board, or neither?
+      vars->grad_res->ptr[i * tab_width + j] = 0;
+      // vars->grad_res->ptr[i * tab_width + j] = EPSILON;
     }
   }
 
@@ -75,12 +75,11 @@ void init_grad(LPDef_t *lp, SolverVars_t *vars) {
   }
 
   // // clamp small values
-  // FPN MINVAL = 1e-4;
   // for (IDX i = 0; i < tab_width - 1; i++) {
   //   for (IDX j = 0; j < tab_width; j++) {
-  //     if (FPN_abs(vars->grad_res->ptr[i * tab_width + j]) < MINVAL) {
+  //     if (FPN_abs(vars->grad_res->ptr[i * tab_width + j]) < EPSILON) {
   //       vars->grad_res->ptr[i * tab_width + j] =
-  //           vars->grad_res->ptr[i * tab_width + j] > 0 ? MINVAL : -MINVAL;
+  //           vars->grad_res->ptr[i * tab_width + j] > 0 ? EPSILON : -EPSILON;
   //     }
   //   }
   // }
@@ -118,6 +117,14 @@ FPN L2(LPDef_t *lp, SolverVars_t *vars) {
   return sq_diff;
 }
 
+FPN cost(LPDef_t *lp, SolverVars_t *vars) {
+  FPN c = 0;
+  for (IDX i = 0; i < lp->M; i++) {
+    c += vars->x[i] * lp->c_ptr[i];
+  }
+  return c;
+}
+
 SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
 
   // initialise variables
@@ -130,16 +137,17 @@ SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
   }
 
   FPN step = opt.init_stepsize;
-  FPN old_cost = -NEG_INF;
-  FPN new_cost;
+  FPN old_gap = -NEG_INF;
+  FPN new_gap;
   IDX i = 0;
 
-  while ((old_cost > opt.tol) && (i < opt.maxiter)) {
+  while ((old_gap > opt.tol) && (i < opt.maxiter)) {
 
     init_grad(lp, vars);
     kkt_neg_res(lp, vars, opt.eps);
 
 #ifdef DEBUG_SOLVE
+    // showing tab before elimination
     GJTab_print(vars->grad_res, vars->pivots);
 #endif /* ifdef DEBUG_SOLVE */
 
@@ -153,18 +161,19 @@ SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
       vars->x[i] += step * vars->d_xuv[i];
       vars->u[i] += step * vars->d_xuv[lp->M + i];
 
+      // project to R_+
       if (vars->x[i] < EPSILON) {
         vars->x[i] = EPSILON;
       }
     }
 
-    new_cost = L2(lp, vars);
+    new_gap = L2(lp, vars);
 
-    if (new_cost > old_cost) {
+    if (new_gap > old_gap) {
       step /= 2; // acceptable strategy? line search would be better?
     }
 
-    old_cost = new_cost;
+    old_gap = new_gap;
     i++;
 
 #ifdef DEBUG_SOLVE
@@ -180,10 +189,10 @@ SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
     printf("\nv\n");
     print_vec(vars->v, lp->N);
 
-    printf("\n\ni = %lu, gap = %lf\n", i, new_cost);
+    printf("\n\ni = %lu, gap = %lf\n", i, new_gap);
     printf("\n=========\n");
 #endif /* ifdef DEBUG_SOLVE */
   }
 
-  return (SolverStats_t){old_cost, i};
+  return (SolverStats_t){old_gap, cost(lp, vars), i};
 }

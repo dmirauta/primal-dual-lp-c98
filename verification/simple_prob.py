@@ -5,12 +5,15 @@ from common import augment, gen_lin_grad, print_prob, res_vec
 
 
 def build_problem(nonneg):
+    """
+    we don't need nonneg augmentation for our solver
+    but do need it for solving with cvxpy
+    """
     np.random.seed(1)
 
     # Create shaped variables and coefficients
     x = cp.Variable(shape=(N), nonneg=nonneg)
 
-    # Create two constraints.
     constraints = [A_ @ x == b_, G @ x <= h]
 
     # Form objective.
@@ -20,13 +23,19 @@ def build_problem(nonneg):
     return cp.Problem(obj, constraints), x
 
 
-def print_step():
+def half_step_and_print():
+    G = gen_lin_grad(A, _x, u)
+    r = res_vec(A, b, _x, c, u, v)
+    d_xuv = np.linalg.solve(G, r)
+
     print("grad:")
     print(G)
     print("res:")
     print(r)
     print("d_xuv:")
     print(d_xuv)
+
+    return d_xuv
 
 
 if __name__ == "__main__":
@@ -65,20 +74,13 @@ if __name__ == "__main__":
     _x = np.ones(m)
     u = np.ones(m)
     v = np.ones(n)
-    G = gen_lin_grad(A, _x, u)
-    r = res_vec(A, b, _x, c, u, v)
-    d_xuv = np.linalg.solve(G, r)
 
-    print("Expected first step:")
-    print_step()
+    print("Expected first step linear system:")
+    d_xuv = half_step_and_print()
 
     _x += 0.1 * d_xuv[:m]
     u += 0.1 * d_xuv[m : 2 * m]
     v += 0.1 * d_xuv[2 * m :]
 
-    G = gen_lin_grad(A, _x, u)
-    r = res_vec(A, b, _x, c, u, v)
-    d_xuv = np.linalg.solve(G, r)
-
-    print("Second")
-    print_step()
+    print("Expected second step linear system:")
+    half_step_and_print()

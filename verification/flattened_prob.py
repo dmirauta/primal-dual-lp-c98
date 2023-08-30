@@ -5,6 +5,10 @@ from common import augment, print_c_arr, print_prob
 
 
 def build_problem(nonneg):
+    """
+    we don't need nonneg augmentation for our solver
+    but do need it for solving with cvxpy
+    """
     np.random.seed(1)
 
     N = 2
@@ -17,7 +21,6 @@ def build_problem(nonneg):
     bs = np.random.uniform(0.1, 1, N)
     hs = np.random.uniform(0.1, 1, N)
 
-    # Create constraints, make sure we have more than N^2 equations...
     constraints = [cp.sum(X, 0) == bs, cp.sum(X, 1) <= 2 * hs]
     # constraints += [X <= Bs]
 
@@ -31,9 +34,7 @@ def build_problem(nonneg):
 if __name__ == "__main__":
     prob, X = build_problem(False)
 
-    # get flattened representation, adds nonnegativity constraints
-    #                               (already built into our solver,
-    #                                so may be undesired)
+    # get flattened representation
     data, chain, inverse_data = prob.get_problem_data(cp.SCIPY)
 
     A, b, c = augment(
@@ -42,8 +43,6 @@ if __name__ == "__main__":
 
     print_prob(A, b, c)
 
-    # we don't need nonneg augmentation for our solver
-    # but do need it for correct comparisson
     prob, X = build_problem(True)
 
     print("cost: ", prob.solve())

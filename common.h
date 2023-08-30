@@ -20,6 +20,10 @@ typedef unsigned char BYTE;
 
 FPN FPN_abs(FPN a);
 
+void clamp(FPN *a);
+
+FPN clamped(FPN a);
+
 #ifdef ON_CPU
 #define SETREDTEXT "\033[1;31m"
 #define RESETCOLOR "\033[1;0m"

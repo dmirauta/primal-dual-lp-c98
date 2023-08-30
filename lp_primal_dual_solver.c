@@ -77,10 +77,7 @@ void init_grad(LPDef_t *lp, SolverVars_t *vars) {
   // // clamp small values
   // for (IDX i = 0; i < tab_width - 1; i++) {
   //   for (IDX j = 0; j < tab_width; j++) {
-  //     if (FPN_abs(vars->grad_res->ptr[i * tab_width + j]) < EPSILON) {
-  //       vars->grad_res->ptr[i * tab_width + j] =
-  //           vars->grad_res->ptr[i * tab_width + j] > 0 ? EPSILON : -EPSILON;
-  //     }
+  //     clamp(&vars->grad_res->ptr[i * tab_width + j]);
   //   }
   // }
 }

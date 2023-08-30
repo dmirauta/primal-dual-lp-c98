@@ -65,7 +65,7 @@ void eliminate(GJTab_t *tab, IdxStack_t *pivots) {
     if (!IdxStack_contains(pivots, i)) {
       cv = tab->ptr[i * (tab->N + 1) + current_pivot_j];
       pv = tab->ptr[current_pivot_i * (tab->N + 1) + current_pivot_j];
-      q = cv / (pv + EPSILON);
+      q = cv / clamped(pv);
       sub_scaled_row(tab, current_pivot_j, current_pivot_i, i, q);
 
 #ifdef DEBUG_GJ
@@ -93,7 +93,7 @@ void backsub_row(GJTab_t *tab, IdxStack_t *pivots) {
     i = pivots->ptr[k];
     cv = tab->ptr[i * (tab->N + 1) + current_pivot_j];
     pv = tab->ptr[current_pivot_i * (tab->N + 1) + current_pivot_j];
-    q = cv / (pv + EPSILON);
+    q = cv / clamped(pv);
     sub_scaled_row(tab, current_pivot_j, current_pivot_i, i, q);
 
 #ifdef DEBUG_GJ
@@ -138,6 +138,6 @@ void gauss_jordan(GJTab_t *tab, IdxStack_t *pivots, FPN *sol) {
   for (IDX k = 0; k < tab->N; k++) {
     i = pivots->ptr[k];
     sol[k] = tab->ptr[i * (tab->N + 1) + tab->N] /
-             (tab->ptr[i * (tab->N + 1) + k] + EPSILON);
+             clamped(tab->ptr[i * (tab->N + 1) + k]);
   }
 }

@@ -2,6 +2,20 @@
 
 FPN FPN_abs(FPN a) { return a > 0 ? a : -a; };
 
+void clamp(FPN *a) {
+  BYTE is_pos = *a > 0;
+  FPN abs_a = is_pos ? *a : -*a;
+  if (abs_a < EPSILON) {
+    *a = is_pos ? EPSILON : -EPSILON;
+  }
+}
+
+FPN clamped(FPN a) {
+  FPN out = a;
+  clamp(&out);
+  return out;
+}
+
 #ifdef ON_CPU
 void print_vec(FPN *vec, IDX len) {
   for (IDX k = 0; k < len; k++) {

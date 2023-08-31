@@ -106,8 +106,8 @@ int main() {
   // gauss_jordan_test();
 
   printf("\n\nLP solve:\n");
-  // dual_solve_test_simple();
-  dual_solve_test_flattened();
+  dual_solve_test_simple();
+  // dual_solve_test_flattened();
 
   return 0;
 }

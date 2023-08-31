@@ -56,12 +56,13 @@ def solve_probs(probs, opts=(0.1, 0.5, 1e-19, 1.0, 1000)):
 
     N, M = probs[0][0].shape
     build_opts = f"{build_options_base} -D NDEF={N} -D MDEF={M}"
+    print("build opts: ", build_opts)
 
-    As_cpu = np.zeros(N * M * Nprobs)
-    bs_cpu = np.zeros(N * Nprobs)
-    cs_cpu = np.zeros(M * Nprobs)
-    sols_cpu = np.zeros(M * Nprobs)
-    opts_c = struct.pack(solver_opt_struct_fmt, *opts)
+    As_cpu = np.zeros(N * M * Nprobs, dtype=np_fpn)
+    bs_cpu = np.zeros(N * Nprobs, dtype=np_fpn)
+    cs_cpu = np.zeros(M * Nprobs, dtype=np_fpn)
+    sols_cpu = np.zeros(M * Nprobs, dtype=np_fpn)
+    opts_c = struct.pack(solver_opt_struct_fmt, *opts)  # not currently being passed
 
     # make flat arrays
     for i, (A, b, c) in enumerate(probs):
@@ -88,9 +89,12 @@ def solve_probs(probs, opts=(0.1, 0.5, 1e-19, 1.0, 1000)):
 if __name__ == "__main__":
     from simple_prob import gen_lp
 
-    N = 10  # base N will not be the same as augmented...
-    N_probs = 100
+    N = 2  # base N will not be the same as augmented...
+    Nprobs = 50
 
-    probs = [gen_lp(N=N, seed=i) for i in range(N_probs)]
+    probs = [gen_lp(N=N, seed=i) for i in range(Nprobs)]
 
+    t0 = time.time()
     sols = solve_probs(probs)
+    print("elapsed:", time.time() - t0)
+    print(sols[:2])  # first solution, expecting ~ [0.45709073, 0.58493506]

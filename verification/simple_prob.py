@@ -4,12 +4,28 @@ import numpy as np
 from common import augment, gen_lin_grad, print_prob, res_vec
 
 
-def build_problem(nonneg):
+def _gen_lp(seed=1, N=2):
+    np.random.seed(seed)
+    A_ = np.random.uniform(0.1, 1, (N, N))
+    G = np.random.uniform(0.1, 1, (N, N))
+    sol = np.random.uniform(0.1, 1, N)
+    dlt = np.random.uniform(0.1, 1, N)
+    b_ = A_ @ sol
+    h = G @ sol + dlt
+    c_ = np.random.uniform(0.1, 1, N)
+    return A_, b_, G, h, c_
+
+
+def gen_lp(*args, **kwargs):
+    return augment(*_gen_lp(*args, **kwargs))
+
+
+def build_cvxpy_prob(nonneg, N=2, seed=1):
     """
     we don't need nonneg augmentation for our solver
     but do need it for solving with cvxpy
     """
-    np.random.seed(1)
+    A_, b_, G, h, c_ = _gen_lp(N=N, seed=seed)
 
     # Create shaped variables and coefficients
     x = cp.Variable(shape=(N), nonneg=nonneg)
@@ -39,29 +55,18 @@ def half_step_and_print():
 
 
 if __name__ == "__main__":
-    N = 2
-    A_ = np.random.uniform(0.1, 1, (N, N))
-    G = np.random.uniform(0.1, 1, (N, N))
-    sol = np.random.uniform(0.1, 1, N)
-    dlt = np.random.uniform(0.1, 1, N)
-    b_ = A_ @ sol
-    h = G @ sol + dlt
-    c_ = np.random.uniform(0.1, 1, N)
-
-    prob, x = build_problem(False)
+    A, b, c = gen_lp()
+    prob, x = build_cvxpy_prob(False)
 
     # data, chain, inverse_data = prob.get_problem_data(cp.SCIPY)
     #
     # A, b, c = augment(
     #     data["A"].toarray(), data["b"], data["G"].toarray(), data["h"], data["c"]
     # )
-    A, b, c = augment(A_, b_, G, h, c_)
-
-    print("intended sol: ", sol)
 
     print_prob(A, b, c)
 
-    prob, x = build_problem(True)
+    prob, x = build_cvxpy_prob(True)
     print("cost: ", prob.solve())
     print("status: ", prob.status)
 

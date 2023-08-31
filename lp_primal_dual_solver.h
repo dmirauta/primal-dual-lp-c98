@@ -1,3 +1,5 @@
+#pragma once
+
 #include "common.h"
 #include "gauss_jordan.h"
 

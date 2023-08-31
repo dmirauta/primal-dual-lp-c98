@@ -1,3 +1,4 @@
+#pragma once
 
 #ifdef ON_CPU
 #include <stdio.h>

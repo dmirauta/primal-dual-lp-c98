@@ -1,3 +1,5 @@
+#pragma once
+
 #include "stack.h"
 
 // Tableau (A|b) for Gauss-Jordan elimination (for Ax=b).

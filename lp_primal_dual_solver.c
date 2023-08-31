@@ -138,6 +138,7 @@ SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
   FPN new_gap;
   FPN cs_eps = opt.eps;
   IDX i = 0;
+  BYTE aborted = 0;
 
   while ((old_gap > opt.tol) && (i < opt.maxiter)) {
 
@@ -150,6 +151,12 @@ SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
 #endif /* ifdef DEBUG_SOLVE */
 
     new_gap = L2(lp, vars);
+
+    // abort if blowing up
+    if (new_gap > 100 * old_gap) {
+      aborted = 1;
+      break;
+    }
 
     if (new_gap > old_gap) {
       step /= 2;
@@ -193,5 +200,5 @@ SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
 #endif /* ifdef DEBUG_SOLVE */
   }
 
-  return (SolverStats_t){old_gap, cost(lp, vars), i};
+  return (SolverStats_t){old_gap, cost(lp, vars), i, aborted};
 }

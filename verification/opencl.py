@@ -51,11 +51,12 @@ with open("../kernel.cl", "r") as f:
     kernel_cl = f.read()
 
 
-def solve_probs(probs, opts=(0.1, 0.5, 1e-19, 1.0, 1000)):
+def solve_probs(probs, opts=(0.1, 0.5, 1e-9, 1.0, 100)):
     Nprobs = len(probs)
 
     N, M = probs[0][0].shape
     build_opts = f"{build_options_base} -D NDEF={N} -D MDEF={M}"
+    build_opts += f" -D EPSILON=1e-9"
     print("build opts: ", build_opts)
 
     As_cpu = np.zeros(N * M * Nprobs, dtype=np_fpn)

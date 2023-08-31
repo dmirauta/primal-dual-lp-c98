@@ -45,7 +45,7 @@ __kernel void solve_lps(__global FPN *As, __global FPN *bs, __global FPN *cs,
   //// assignment end
 
   LPDef_t lp = (LPDef_t){&A, &b, &c, N, M};
-  SolverOpt_t opts = {0.1, 0.5, 1e-19, 1.0, 1000}; // use hardcoded opts for now
+  SolverOpt_t opts = {0.1, 0.5, 1e-9, 1.0, 100}; // use hardcoded opts for now
 
   SolverStats_t ss = solve(&lp, &vars, opts);
 

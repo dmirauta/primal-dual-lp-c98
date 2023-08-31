@@ -48,6 +48,7 @@ typedef struct SolverStats {
   FPN gap;
   FPN cost;
   IDX iters;
+  BYTE aborted;
 } SolverStats_t;
 
 // iterative rootfinding in the linearised kkt residual

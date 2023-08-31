@@ -62,7 +62,7 @@ def solve_probs(probs, opts=(0.1, 0.5, 1e-19, 1.0, 1000)):
     bs_cpu = np.zeros(N * Nprobs, dtype=np_fpn)
     cs_cpu = np.zeros(M * Nprobs, dtype=np_fpn)
     sols_cpu = np.zeros(M * Nprobs, dtype=np_fpn)
-    opt_gaps_cpu = np.zeros(Nprobs, dtype=np_fpn)
+    kkt_sq_res_cpu = np.zeros(Nprobs, dtype=np_fpn)
     opts_c = struct.pack(solver_opt_struct_fmt, *opts)  # not currently being passed
 
     # make flat arrays
@@ -75,20 +75,20 @@ def solve_probs(probs, opts=(0.1, 0.5, 1e-19, 1.0, 1000)):
     bs_gpu = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=bs_cpu)
     cs_gpu = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=cs_cpu)
     sols_gpu = cl.Buffer(ctx, mf.WRITE_ONLY, fps * M * Nprobs)
-    opt_gaps_gpu = cl.Buffer(ctx, mf.WRITE_ONLY, fps * Nprobs)
+    kkt_sq_res_gpu = cl.Buffer(ctx, mf.WRITE_ONLY, fps * Nprobs)
 
     prg = cl.Program(ctx, kernel_cl).build(options=build_opts)
     prg.solve_lps(
-        queue, (Nprobs,), None, As_gpu, bs_gpu, cs_gpu, sols_gpu, opt_gaps_gpu
+        queue, (Nprobs,), None, As_gpu, bs_gpu, cs_gpu, sols_gpu, kkt_sq_res_gpu
     )
 
     cl.enqueue_copy(queue, sols_cpu, sols_gpu)
-    cl.enqueue_copy(queue, opt_gaps_cpu, opt_gaps_gpu)
+    cl.enqueue_copy(queue, kkt_sq_res_cpu, kkt_sq_res_gpu)
 
-    for obj in [As_gpu, bs_gpu, cs_gpu, sols_gpu, opt_gaps_gpu]:
+    for obj in [As_gpu, bs_gpu, cs_gpu, sols_gpu, kkt_sq_res_gpu]:
         obj.release()
 
-    return sols_cpu, opt_gaps_cpu
+    return sols_cpu, kkt_sq_res_cpu
 
 
 if __name__ == "__main__":
@@ -97,15 +97,19 @@ if __name__ == "__main__":
     N = 2  # base N will not be the same as augmented...
     Nprobs = 50
 
-    seeds = list(range(Nprobs))
+    seeds = list(range(1, 1 + Nprobs))
     probs = [gen_lp(N=N, seed=s) for s in seeds]
     _N, _M = probs[0][0].shape
 
     t0 = time.time()
-    sols, opt_gaps = solve_probs(probs)
+    sols, kkt_sq_res = solve_probs(probs)
     print("elapsed:", time.time() - t0)
 
     for i, s in enumerate(seeds[:10]):
-        print(f"\nSeed {s}:\nCvxpy:\n")
+        print(f"\nSeed {s}:\n\nCvxpy:")
         summarise_cvxpy_sol(N, s)
-        print("\nOur sol: {} (gap: {})".format(sols[_M * i : _M * i + N], opt_gaps[i]))
+        print(
+            "\nOur sol: {} (kkt sq res: {})".format(
+                sols[_M * i : _M * i + N], kkt_sq_res[i]
+            )
+        )

@@ -5,7 +5,7 @@
 #include "stack.c"
 
 __kernel void solve_lps(__global FPN *As, __global FPN *bs, __global FPN *cs,
-                        __global FPN *sols, __global FPN *opt_gaps) {
+                        __global FPN *sols, __global FPN *kkt_sq_gaps) {
   // kernel idx
   IDX k = get_global_id(0);
 
@@ -50,16 +50,17 @@ __kernel void solve_lps(__global FPN *As, __global FPN *bs, __global FPN *cs,
   SolverStats_t ss = solve(&lp, &vars, opts);
 
   // sanity check
-  if (k == 9) {
+  if (k == 7) {
+    // opencl printf allways adds newline?
     printf("hello from the gpu!");
-    print_vec(x, M); // opencl printf allways adds newline?
+    print_vec(x, M);
 #ifdef USE_FLOAT
-    printf("\n\ngap = %05.4f, cost = %05.4f, iters = %lu\n", ss.gap, ss.cost,
-           ss.iters);
+    printf("\n\nkkt sq gap = %05.4f, cost = %05.4f, iters = %lu\n", ss.gap,
+           ss.cost, ss.iters);
 #else
-    //// does not like lf format
-    printf("\n\ngap = %05.4lf, cost = %05.4lf, iters = %lu\n", ss.gap, ss.cost,
-           ss.iters);
+    // does not like lf format?
+    printf("\n\nkkt sq gap = %05.4lf, cost = %05.4lf, iters = %lu\n", ss.gap,
+           ss.cost, ss.iters);
 #endif /* ifdef USE_FLOAT */
   }
 
@@ -67,5 +68,5 @@ __kernel void solve_lps(__global FPN *As, __global FPN *bs, __global FPN *cs,
   for (IDX j = 0; j < M; j++) {
     sols[k * M + j] = x[j];
   }
-  opt_gaps[k] = ss.gap;
+  kkt_sq_gaps[k] = ss.gap;
 }

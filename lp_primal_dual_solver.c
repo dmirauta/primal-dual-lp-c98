@@ -149,6 +149,12 @@ SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
     GJTab_print(vars->grad_res, vars->pivots);
 #endif /* ifdef DEBUG_SOLVE */
 
+    new_gap = L2(lp, vars);
+
+    if (new_gap > old_gap) {
+      step /= 2;
+    }
+
     gauss_jordan(vars->grad_res, vars->pivots, vars->d_xuv);
 
     // update variables
@@ -163,12 +169,6 @@ SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
       if (vars->x[i] < EPSILON) {
         vars->x[i] = EPSILON;
       }
-    }
-
-    new_gap = L2(lp, vars);
-
-    if (new_gap > old_gap) {
-      step /= 2; // acceptable strategy? line search would be better?
     }
 
     old_gap = new_gap;

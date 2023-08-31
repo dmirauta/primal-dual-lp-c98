@@ -67,8 +67,8 @@ void dual_solve_test_general(FPN *Aptr, FPN *bptr, FPN *cptr, IDX N, IDX M) {
   // printf("\ngrad_neg_res: \n");
   // GJTab_print(&tab, &pivots);
 
-  printf("\n\ngap = %05.4lf, cost = %05.4lf, iters = %lu\n", ss.gap, ss.cost,
-         ss.iters);
+  printf("\n\n kkt sq gap = %05.4lf, cost = %05.4lf, iters = %lu\n", ss.gap,
+         ss.cost, ss.iters);
 
   // should explicitly free mem...
 }

@@ -11,3 +11,5 @@ Gcc testing (single execution):
 
 Dispatch opencl job from python test (solve many problems in parallel):
 `cd verification && python opencl.py`
+
+LP solver reference: [Primal-Dual Interior-Point Methods (Aarti Singh)](https://www.cs.cmu.edu/~pradeepr/convexopt/Lecture_Slides/primal-dual.pdf)

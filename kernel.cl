@@ -5,7 +5,7 @@
 #include "stack.c"
 
 __kernel void solve_lps(__global FPN *As, __global FPN *bs, __global FPN *cs,
-                        __global FPN *sols) {
+                        __global FPN *sols, __global FPN *opt_gaps) {
   // kernel idx
   IDX k = get_global_id(0);
 
@@ -19,7 +19,7 @@ __kernel void solve_lps(__global FPN *As, __global FPN *bs, __global FPN *cs,
 
   IDX idxs[Ngrad];
   BYTE contained[Ngrad];
-  IdxStack_t pivots = {&idxs, &contained, N, 0};
+  IdxStack_t pivots = {&idxs, &contained, Ngrad, 0};
 
   FPN x[M];
   FPN u[M];
@@ -49,17 +49,23 @@ __kernel void solve_lps(__global FPN *As, __global FPN *bs, __global FPN *cs,
 
   SolverStats_t ss = solve(&lp, &vars, opts);
 
-  // // sanity check
-  // if (k == 0) {
-  //   printf("hello from the gpu!");
-  //   // does not like lf format
-  //   // print_vec(x, M); // opencl printf allways adds newline?
-  //   // printf("\n\ngap = %05.4lf, cost = %05.4lf, iters = %lu\n", ss.gap,
-  //   // ss.cost, ss.iters);
-  // }
+  // sanity check
+  if (k == 9) {
+    printf("hello from the gpu!");
+    print_vec(x, M); // opencl printf allways adds newline?
+#ifdef USE_FLOAT
+    printf("\n\ngap = %05.4f, cost = %05.4f, iters = %lu\n", ss.gap, ss.cost,
+           ss.iters);
+#else
+    //// does not like lf format
+    printf("\n\ngap = %05.4lf, cost = %05.4lf, iters = %lu\n", ss.gap, ss.cost,
+           ss.iters);
+#endif /* ifdef USE_FLOAT */
+  }
 
   // to send back
   for (IDX j = 0; j < M; j++) {
     sols[k * M + j] = x[j];
   }
+  opt_gaps[k] = ss.gap;
 }

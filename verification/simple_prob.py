@@ -39,6 +39,14 @@ def build_cvxpy_prob(nonneg, N=2, seed=1):
     return cp.Problem(obj, constraints), x
 
 
+def summarise_cvxpy_sol(N=2, seed=1):
+    prob, x = build_cvxpy_prob(True, N, seed)
+    print("cost: ", prob.solve())
+    print("status: ", prob.status)
+
+    print("solution: ", x.value)
+
+
 def half_step_and_print():
     G = gen_lin_grad(A, _x, u)
     r = res_vec(A, b, _x, c, u, v)
@@ -55,37 +63,27 @@ def half_step_and_print():
 
 
 if __name__ == "__main__":
-    A, b, c = gen_lp()
-    prob, x = build_cvxpy_prob(False)
-
-    # data, chain, inverse_data = prob.get_problem_data(cp.SCIPY)
-    #
-    # A, b, c = augment(
-    #     data["A"].toarray(), data["b"], data["G"].toarray(), data["h"], data["c"]
-    # )
+    seed = 9
+    A, b, c = gen_lp(seed=seed)
 
     print_prob(A, b, c)
 
-    prob, x = build_cvxpy_prob(True)
-    print("cost: ", prob.solve())
-    print("status: ", prob.status)
+    summarise_cvxpy_sol(seed=seed)
 
-    print("solution: ", x.value)
-
-    ##################################################
-    ## Double check solver implementation/debug output
-
-    n, m = A.shape  # not the same as N...
-    _x = np.ones(m)
-    u = np.ones(m)
-    v = np.ones(n)
-
-    print("Expected first step linear system:")
-    d_xuv = half_step_and_print()
-
-    _x += 0.1 * d_xuv[:m]
-    u += 0.1 * d_xuv[m : 2 * m]
-    v += 0.1 * d_xuv[2 * m :]
-
-    print("Expected second step linear system:")
-    half_step_and_print()
+    # ##################################################
+    # ## Double check solver implementation/debug output
+    #
+    # n, m = A.shape  # not the same as N...
+    # _x = np.ones(m)
+    # u = np.ones(m)
+    # v = np.ones(n)
+    #
+    # print("Expected first step linear system:")
+    # d_xuv = half_step_and_print()
+    #
+    # _x += 0.1 * d_xuv[:m]
+    # u += 0.1 * d_xuv[m : 2 * m]
+    # v += 0.1 * d_xuv[2 * m :]
+    #
+    # print("Expected second step linear system:")
+    # half_step_and_print()

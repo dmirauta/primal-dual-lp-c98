@@ -5,19 +5,22 @@
 #include <stdlib.h>
 #endif
 
-// hacky generics
-typedef double FPN;
 typedef size_t IDX; // unneccesary redefinition? (defined in OpenCL?)
-
 typedef unsigned char BYTE;
 
+#ifdef USE_FLOAT
+typedef float FPN;
+#define NEG_INF -1.0f / 0.0f;
+#define EPSILON 1e-19f
+#define FZERO 0.0f
+#define FONE 1.0f
+#else
+typedef double FPN;
 #define NEG_INF -1.0 / 0.0;
-
 #define EPSILON 1e-19
-
 #define FZERO 0.0
-
 #define FONE 1.0
+#endif // DEBUG
 
 FPN FPN_abs(FPN a);
 

@@ -18,6 +18,10 @@ FPN clamped(FPN a) {
 
 void print_vec(FPN *vec, IDX len) {
   for (IDX k = 0; k < len; k++) {
+#ifdef USE_FLOAT
+    printf("%05.4f ", vec[k]);
+#else
     printf("%05.4lf ", vec[k]);
+#endif /* ifdef USE_FLOAT */
   }
 }

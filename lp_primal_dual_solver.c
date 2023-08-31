@@ -35,9 +35,9 @@ void kkt_neg_res(LPDef_t *lp, SolverVars_t *vars, FPN cs_eps) {
 void init_grad(LPDef_t *lp, SolverVars_t *vars) {
   IDX tab_width = lp->N + 2 * lp->M + 1;
 
-  // init grad_res to 0
+  // init grad to 0
   for (IDX i = 0; i < tab_width - 1; i++) {
-    for (IDX j = 0; j < tab_width; j++) {
+    for (IDX j = 0; j < tab_width - 1; j++) {
       // clamp small values (at end) or add across the board, or neither?
       vars->grad_res->ptr[i * tab_width + j] = 0;
       // vars->grad_res->ptr[i * tab_width + j] = EPSILON;
@@ -122,6 +122,25 @@ FPN cost(LPDef_t *lp, SolverVars_t *vars) {
   return c;
 }
 
+void take_step(LPDef_t *lp, SolverVars_t *vars, FPN step) {
+  for (IDX i = 0; i < lp->N; i++) {
+    vars->v[i] += step * vars->d_xuv[2 * lp->M + i];
+  }
+  for (IDX i = 0; i < lp->M; i++) {
+    vars->x[i] += step * vars->d_xuv[i];
+    vars->u[i] += step * vars->d_xuv[lp->M + i];
+  }
+}
+
+BYTE is_out_of_bound(LPDef_t *lp, SolverVars_t *vars) {
+  for (IDX i = 0; i < lp->M; i++) {
+    if (vars->x[i] < EPSILON || vars->u[i] < EPSILON) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
 
   // initialise variables
@@ -139,17 +158,28 @@ SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
   FPN cs_eps = opt.eps;
   IDX i = 0;
   BYTE aborted = 0;
+  kkt_neg_res(lp, vars, cs_eps);
 
   while ((old_gap > opt.tol) && (i < opt.maxiter)) {
 
     init_grad(lp, vars);
-    kkt_neg_res(lp, vars, cs_eps);
 
 #ifdef DEBUG_SOLVE
     // showing tab before elimination
     GJTab_print(vars->grad_res, vars->pivots);
 #endif /* ifdef DEBUG_SOLVE */
 
+    gauss_jordan(vars->grad_res, vars->pivots, vars->d_xuv);
+
+    step *= 1.25;
+    take_step(lp, vars, step);
+    // contract and backtrack if too far
+    while (is_out_of_bound(lp, vars) && step > EPSILON) {
+      step /= 2;
+      take_step(lp, vars, -step);
+    }
+
+    kkt_neg_res(lp, vars, cs_eps);
     new_gap = L2(lp, vars);
 
     // abort if blowing up
@@ -160,22 +190,6 @@ SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
 
     if (new_gap > old_gap) {
       step /= 2;
-    }
-
-    gauss_jordan(vars->grad_res, vars->pivots, vars->d_xuv);
-
-    // update variables
-    for (IDX i = 0; i < lp->N; i++) {
-      vars->v[i] += step * vars->d_xuv[2 * lp->M + i];
-    }
-    for (IDX i = 0; i < lp->M; i++) {
-      vars->x[i] += step * vars->d_xuv[i];
-      vars->u[i] += step * vars->d_xuv[lp->M + i];
-
-      // project to R_+
-      if (vars->x[i] < EPSILON) {
-        vars->x[i] = EPSILON;
-      }
     }
 
     old_gap = new_gap;

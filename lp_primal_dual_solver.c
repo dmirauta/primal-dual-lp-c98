@@ -1,4 +1,5 @@
 #include "lp_primal_dual_solver.h"
+#include "gauss_jordan.h"
 
 // negative KKT equalities gap
 // res size is N + 2M
@@ -32,7 +33,41 @@ void kkt_neg_res(LPDef_t *lp, SolverVars_t *vars, FPN cs_eps) {
   }
 }
 
-void init_grad(LPDef_t *lp, SolverVars_t *vars) {
+// treating (beginning of) usual tab as _N*(_N+1) while attempting to find an
+// inial (primal) feasible solution
+void init_xuv(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
+
+  IDX _N = lp->N < lp->M ? lp->N : lp->M;
+  // minitab formed from A[:_N, :_N], though may not be basic
+  for (IDX i = 0; i < _N; i++) {
+    for (IDX j = 0; j < _N; j++) {
+      vars->grad_res->ptr[i * (_N + 1) + j] = lp->A_ptr[i * lp->M + j];
+    }
+  }
+  for (IDX i = 0; i < _N; i++) {
+    vars->grad_res->ptr[i * (_N + 1) + _N] = lp->b_ptr[i];
+  }
+  GJTab_t minitab = {vars->grad_res->ptr, _N};
+  // calculate x = A[:_N, :_N]^-1 b
+  gauss_jordan(&minitab, vars->pivots, vars->x);
+
+  for (IDX i = 0; i < lp->M; i++) {
+    if (vars->x[i] < EPSILON) {
+      vars->x[i] = opt.eps;
+    }
+  }
+
+  for (IDX i = 0; i < lp->M; i++) {
+    vars->u[i] = opt.eps / clamped(vars->x[i]);
+  }
+
+  for (IDX i = 0; i < lp->N; i++) {
+    vars->v[i] = FONE;
+  }
+}
+
+// prepare kkt gap gradient
+void init_kkt_grad(LPDef_t *lp, SolverVars_t *vars) {
   IDX tab_width = lp->N + 2 * lp->M + 1;
 
   // init grad to 0
@@ -144,13 +179,7 @@ BYTE is_out_of_bound(LPDef_t *lp, SolverVars_t *vars) {
 SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
 
   // initialise variables
-  for (IDX i = 0; i < lp->M; i++) {
-    vars->x[i] = FONE;
-    vars->u[i] = FONE;
-  }
-  for (IDX i = 0; i < lp->N; i++) {
-    vars->v[i] = FONE;
-  }
+  init_xuv(lp, vars, opt);
 
   FPN step = opt.init_stepsize;
   FPN old_gap = -NEG_INF;
@@ -162,7 +191,7 @@ SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
 
   while ((old_gap > opt.tol) && (i < opt.maxiter)) {
 
-    init_grad(lp, vars);
+    init_kkt_grad(lp, vars);
 
 #ifdef DEBUG_SOLVE
     // showing tab before elimination
@@ -173,7 +202,8 @@ SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
 
     step *= 1.25;
     take_step(lp, vars, step);
-    // contract and backtrack if too far
+
+    // contract and backtrack if becoming negative
     while (is_out_of_bound(lp, vars) && step > EPSILON) {
       step /= 2;
       take_step(lp, vars, -step);
@@ -182,14 +212,18 @@ SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
     kkt_neg_res(lp, vars, cs_eps);
     new_gap = L2(lp, vars);
 
-    // abort if blowing up
-    if (new_gap > 100 * old_gap) {
-      aborted = 1;
-      break;
+    // contract further if cost increased
+    while ((new_gap > old_gap) && step > EPSILON) {
+      step /= 2;
+      take_step(lp, vars, -step);
+      kkt_neg_res(lp, vars, cs_eps);
+      new_gap = L2(lp, vars);
     }
 
-    if (new_gap > old_gap) {
-      step /= 2;
+    // abort if cannot make step small enough
+    if (step < 1.1 * EPSILON) {
+      aborted = 1;
+      break;
     }
 
     old_gap = new_gap;

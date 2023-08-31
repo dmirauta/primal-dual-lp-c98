@@ -56,7 +56,7 @@ def solve_probs(probs, opts=(0.1, 0.5, 1e-9, 1.0, 100)):
 
     N, M = probs[0][0].shape
     build_opts = f"{build_options_base} -D NDEF={N} -D MDEF={M}"
-    build_opts += f" -D EPSILON=1e-9"
+    build_opts += f" -D EPSILON=1e-21"
     print("build opts: ", build_opts)
 
     As_cpu = np.zeros(N * M * Nprobs, dtype=np_fpn)
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     from simple_prob import gen_lp, summarise_cvxpy_sol
 
     N = 2  # base N will not be the same as augmented...
-    Nprobs = 50
+    Nprobs = 200
 
     seeds = list(range(1, 1 + Nprobs))
     probs = [gen_lp(N=N, seed=s) for s in seeds]
@@ -114,3 +114,5 @@ if __name__ == "__main__":
                 sols[_M * i : _M * i + N], kkt_sq_res[i]
             )
         )
+
+    print("\nsmall (<1e-9) residuals: {}/{}".format((kkt_sq_res < 1e-9).sum(), Nprobs))

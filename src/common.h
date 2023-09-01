@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #endif
 
-typedef size_t IDX; // unneccesary redefinition? (defined in OpenCL?)
+typedef size_t IDX;
 typedef unsigned char BYTE;
 
 #ifdef USE_FLOAT
@@ -28,8 +28,10 @@ typedef double FPN;
 
 FPN FPN_abs(FPN a);
 
+// clamps magnitude, i.e. prevents closeness to 0
 void clamp(FPN *a);
 
+// clamps magnitude, i.e. prevents closeness to 0
 FPN clamped(FPN a);
 
 #ifdef ON_CPU

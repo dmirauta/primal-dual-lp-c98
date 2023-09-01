@@ -9,8 +9,8 @@ mf = cl.mem_flags
 ctx = cl.create_some_context()
 queue = cl.CommandQueue(ctx)
 
-parent = os.path.dirname(os.getcwd())
-build_options_base = f"-I {parent}"
+parent = os.getcwd()
+build_options_base = f"-I {parent}/src"
 
 use_float = False
 if use_float:
@@ -47,8 +47,12 @@ solver_vars_struct_fmt = "=" + "P" * 6
 solver_opt_struct_fmt = "=" + struct_float_char * 4 + "L"
 solver_stats_struct_fmt = "=" + struct_float_char * 2 + "L"
 
-with open("../kernel.cl", "r") as f:
-    kernel_cl = f.read()
+
+try:
+    with open("kernel.cl", "r") as f:
+        kernel_cl = f.read()
+except:
+    print("\nIntended to be run from project root\n")
 
 
 def solve_probs(probs, opts=(0.1, 0.5, 1e-9, 1.0, 100)):

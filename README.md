@@ -6,11 +6,7 @@ May not be practical due to program complexity/ammount of branching.
 
 Appears to be functional according to basic tests via gcc, it is running via opencl also, but many kernels are randomly failing (on lp defs that work via gcc).
 
-Gcc testing (single execution):
-`gcc stack.c common.c gauss_jordan.c test.c lp_primal_dual_solver.c -DON_CPU && time ./a.out`
-
-Dispatch opencl job from python test (solve many problems in parallel):
-`cd verification && python opencl.py`
+See makefile for running options.
 
 LP solver reference: [Primal-Dual Interior-Point Methods (Aarti Singh)](https://www.cs.cmu.edu/~pradeepr/convexopt/Lecture_Slides/primal-dual.pdf)
 

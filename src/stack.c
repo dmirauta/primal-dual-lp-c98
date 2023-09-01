@@ -1,7 +1,7 @@
 #include "stack.h"
 
 void IdxStack_init(IdxStack_t *stack) {
-  for (IDX k = 0; k < stack->size; k++) {
+  for (IDX k = 0; k < stack->capacity; k++) {
     stack->contained[k] = 0;
   }
   stack->size = 0;

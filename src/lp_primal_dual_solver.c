@@ -33,8 +33,8 @@ void kkt_neg_res(LPDef_t *lp, SolverVars_t *vars, FPN cs_eps) {
   }
 }
 
-// treating (beginning of) usual tab as _N*(_N+1) while attempting to find an
-// inial (primal) feasible solution
+// treating (beginning of) usual tab space as _N*(_N+1) while attempting to find
+// an inial (primal) feasible solution
 void init_xuv(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
 
   IDX _N = lp->N < lp->M ? lp->N : lp->M;
@@ -52,7 +52,7 @@ void init_xuv(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
   gauss_jordan(&minitab, vars->pivots, vars->x);
 
   for (IDX i = 0; i < lp->M; i++) {
-    if (vars->x[i] < EPSILON) {
+    if (vars->x[i] < opt.eps) {
       vars->x[i] = opt.eps;
     }
   }
@@ -61,7 +61,22 @@ void init_xuv(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
     vars->u[i] = opt.eps / clamped(vars->x[i]);
   }
 
+  // // minitab formed from A^T[:_N, :_N]
+  // for (IDX i = 0; i < _N; i++) {
+  //   for (IDX j = 0; j < _N; j++) {
+  //     vars->grad_res->ptr[i * (_N + 1) + j] = lp->A_ptr[j * lp->M + i];
+  //   }
+  // }
+  // for (IDX i = 0; i < _N; i++) {
+  //   vars->grad_res->ptr[i * (_N + 1) + _N] = lp->c_ptr[i] - vars->u[i];
+  // }
+  // // calculate v = A^T[:_N, :_N]^-1 (c-u)
+  // gauss_jordan(&minitab, vars->pivots, vars->v);
+
   for (IDX i = 0; i < lp->N; i++) {
+    // if (vars->v[i] < EPSILON) {
+    //   vars->v[i] = EPSILON;
+    // }
     vars->v[i] = FONE;
   }
 }

@@ -6,7 +6,7 @@ gcctest:
 	time ./test.out
 
 ocltest:
-	python verification/opencl.py
+	PYOPENCL_CTX='0' python verification/opencl.py
 
 lib:
 	gcc $(COMMON_FLAGS) -shared -fPIC -o liblpsolve.so

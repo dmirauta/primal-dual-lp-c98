@@ -46,9 +46,11 @@ void sub_scaled_row(GJTab_t *tab, IDX from_col, IDX to_sub, IDX sub_from,
   // m21 m22 ...
   // although one rows is only read, while the other only written
   // is this efficient in terms of memory ops?
-  for (IDX j = from_col; j < tab->N + 1; j++) {
-    tab->ptr[sub_from * (tab->N + 1) + j] -=
-        q * tab->ptr[to_sub * (tab->N + 1) + j];
+  if (FPN_abs(q) > EPSILON) {
+    for (IDX j = from_col; j < tab->N + 1; j++) {
+      tab->ptr[sub_from * (tab->N + 1) + j] -=
+          q * tab->ptr[to_sub * (tab->N + 1) + j];
+    }
   }
 }
 

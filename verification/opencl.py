@@ -60,7 +60,7 @@ def solve_probs(probs, opts=(0.1, 0.5, 1e-9, 1.0, 100)):
 
     N, M = probs[0][0].shape
     build_opts = f"{build_options_base} -D NDEF={N} -D MDEF={M}"
-    build_opts += f" -D EPSILON=1e-21"
+    build_opts += f" -D EPSILON=1e-9"
     print("build opts: ", build_opts)
 
     As_cpu = np.zeros(N * M * Nprobs, dtype=np_fpn)
@@ -120,3 +120,4 @@ if __name__ == "__main__":
         )
 
     print("\nsmall (<1e-9) residuals: {}/{}".format((kkt_sq_res < 1e-9).sum(), Nprobs))
+    print("\n(<10) residuals: {}/{}".format((kkt_sq_res < 10).sum(), Nprobs))

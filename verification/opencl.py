@@ -99,8 +99,8 @@ def solve_probs(probs, opts=(0.1, 0.5, 1e-9, 1.0, 100)):
 if __name__ == "__main__":
     from simple_prob import gen_lp, summarise_cvxpy_sol
 
-    N = 2  # base N will not be the same as augmented...
-    Nprobs = 200
+    N = 10  # base N will not be the same as augmented...
+    Nprobs = 500
 
     seeds = list(range(1, 1 + Nprobs))
     probs = [gen_lp(N=N, seed=s) for s in seeds]
@@ -110,7 +110,7 @@ if __name__ == "__main__":
     sols, kkt_sq_res = solve_probs(probs)
     print("elapsed:", time.time() - t0)
 
-    for i, s in enumerate(seeds[:10]):
+    for i, s in enumerate(seeds[:5]):
         print(f"\nSeed {s}:\n\nCvxpy:")
         summarise_cvxpy_sol(N, s)
         print(
@@ -119,5 +119,7 @@ if __name__ == "__main__":
             )
         )
 
-    print("\nsmall (<1e-9) residuals: {}/{}".format((kkt_sq_res < 1e-9).sum(), Nprobs))
-    print("\n(<10) residuals: {}/{}".format((kkt_sq_res < 10).sum(), Nprobs))
+    eps = 1e-9
+    print(
+        "\nsmall (<{}) residuals: {}/{}".format(eps, (kkt_sq_res < eps).sum(), Nprobs)
+    )

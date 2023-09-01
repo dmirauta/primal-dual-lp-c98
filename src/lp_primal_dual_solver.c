@@ -58,7 +58,7 @@ void init_xuv(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
   }
 
   for (IDX i = 0; i < lp->M; i++) {
-    vars->u[i] = opt.eps / clamped(vars->x[i]);
+    vars->u[i] = opt.eps / vars->x[i];
   }
 
   // // minitab formed from A^T[:_N, :_N]

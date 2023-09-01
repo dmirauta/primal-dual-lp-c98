@@ -13,4 +13,4 @@ LP solver reference: [Primal-Dual Interior-Point Methods (Aarti Singh)](https://
 Issues:
 
 - Will often not get past initialisation when running directly after compilation, only even somewhat working when running with a cached kernel.
-- Large kkt gaps for seemingly correct solutions.
+- Large kkt gaps for seemingly correct solutions, potentially indicative of numerical instability as at least for a time these were reduced by aborting on detecting a large jump (unsure why this is exclusive to gpu).

@@ -203,7 +203,7 @@ SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
     step *= 1.25;
     take_step(lp, vars, step);
 
-    // contract and backtrack if becoming negative
+    // contract and backtrack if x,u becoming negative
     while (is_out_of_bound(lp, vars) && step > EPSILON) {
       step /= 2;
       take_step(lp, vars, -step);
@@ -212,7 +212,7 @@ SolverStats_t solve(LPDef_t *lp, SolverVars_t *vars, SolverOpt_t opt) {
     kkt_neg_res(lp, vars, cs_eps);
     new_gap = L2(lp, vars);
 
-    // contract further if cost increased
+    // contract further if residual is larger
     while ((new_gap > old_gap) && step > EPSILON) {
       step /= 2;
       take_step(lp, vars, -step);

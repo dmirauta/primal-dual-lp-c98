@@ -5,8 +5,8 @@ gcctest:
 	gcc $(COMMON_FLAGS) test.c -g -o test.out
 	time ./test.out
 
-ocltest:
-	PYOPENCL_CTX='0' python verification/opencl.py
+wraptest:
+	PYOPENCL_CTX='0' python verification/wrapper.py
 
 lib:
 	gcc $(COMMON_FLAGS) -shared -fPIC -o liblpsolve.so

@@ -49,7 +49,7 @@ __kernel void solve_lps(__global FPN *As, __global FPN *bs, __global FPN *cs,
 
   SolverStats_t ss = solve(&lp, &vars, opts);
 
-  // sanity check
+#ifdef SANITY_CHECK
   if (k == 7) {
     // opencl printf allways adds newline?
     printf("hello from the gpu!");
@@ -63,6 +63,7 @@ __kernel void solve_lps(__global FPN *As, __global FPN *bs, __global FPN *cs,
            ss.cost, ss.iters);
 #endif /* ifdef USE_FLOAT */
   }
+#endif
 
   // to send back
   for (IDX j = 0; j < M; j++) {

@@ -28,15 +28,12 @@ def build_cvxpy_prob(nonneg, N=2, seed=1):
     A_, b_, G, h, c_ = _gen_lp(N=N, seed=seed)
 
     # Create shaped variables and coefficients
-    x = cp.Variable(shape=(N), nonneg=nonneg)
 
-    constraints = [A_ @ x == b_, G @ x <= h]
 
-    # Form objective.
-    obj = cp.Minimize(cp.sum(cp.multiply(c_, x)))
-
-    # Form and solve problem.
-    return cp.Problem(obj, constraints), x
+def cvxpy_solve(N=2, seed=1):
+    prob, x = build_cvxpy_prob(True, N, seed)
+    cost = prob.solve()
+    return x.value, dict(cost=cost, sucess=prob.status)
 
 
 def summarise_cvxpy_sol(N=2, seed=1):
@@ -45,6 +42,28 @@ def summarise_cvxpy_sol(N=2, seed=1):
     print("status: ", prob.status)
 
     print("solution: ", x.value)
+
+
+def cvxpy_solve(N=2, seed=1):
+    prob, x = build_cvxpy_prob(True, N, seed)
+    cost = prob.solve()
+    return x.value, dict(cost=cost, sucess=prob.status)
+
+
+def cvxpy_solve_augmented(A, b, c):
+    N, _ = A.shape
+
+    x = cp.Variable(shape=(N), nonneg=True)
+    constraints = [A @ x == b]
+    obj = cp.Minimize(cp.sum(cp.multiply(c, x)))
+    prob = cp.Problem(obj, constraints)
+
+    cost = prob.solve()
+    return x.value, dict(cost=cost, success=prob.status)
+
+
+def cvxpy_multisolve(probs):
+    return tuple(zip(*[cvxpy_solve_augmented(A, b, c) for A, b, c in probs]))
 
 
 def half_step_and_print():

@@ -28,6 +28,15 @@ def build_cvxpy_prob(nonneg, N=2, seed=1):
     A_, b_, G, h, c_ = _gen_lp(N=N, seed=seed)
 
     # Create shaped variables and coefficients
+    x = cp.Variable(shape=(N), nonneg=nonneg)
+
+    constraints = [A_ @ x == b_, G @ x <= h]
+
+    # Form objective.
+    obj = cp.Minimize(cp.sum(cp.multiply(c_, x)))
+
+    # Form and solve problem.
+    return cp.Problem(obj, constraints), x
 
 
 def cvxpy_solve(N=2, seed=1):

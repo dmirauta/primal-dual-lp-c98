@@ -227,8 +227,8 @@ def wrap_multisolve_multithread(probs):
 if __name__ == "__main__":
     from simple_prob import gen_lp, cvxpy_multisolve
 
-    N = 40  # base N will not be the same as augmented...
-    Nprobs = 100
+    N = 10  # base N will not be the same as augmented...
+    Nprobs = 500
     eps = 1e-9
 
     A, b, c = gen_lp(N=N)

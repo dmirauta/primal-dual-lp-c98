@@ -9,4 +9,4 @@ wraptest:
 	PYOPENCL_CTX='0' python verification/wrapper.py
 
 lib:
-	gcc $(COMMON_FLAGS) -shared -fPIC -o liblpsolve.so
+	gcc $(COMMON_FLAGS) -O3 -shared -fPIC -o liblpsolve.so

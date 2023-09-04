@@ -16,20 +16,20 @@ Where N is the number of variables per problem
 
 ```
 Cvxpy:
-        seconds elapsed: 1.5327675342559814
+        seconds elapsed: 1.5288472175598145
         problems converged: 500/500
 
 CPU lib (single thread):
-        seconds elapsed: 1.7172300815582275
+        seconds elapsed: 0.5506298542022705
         problems converged: 500/500
         matching cvxpy: 498/500
 
 CPU lib (multi thread 8c/16t):
-        seconds elapsed: 0.2414712905883789
+        seconds elapsed: 0.1230015754699707
         ...
 
 GPU via OpenCL:
-        seconds elapsed: 0.20771265029907227
+        seconds elapsed: 0.21674084663391113
         problems converged: 500/500
         matching cvxpy: 498/500
 ```
@@ -38,20 +38,20 @@ GPU via OpenCL:
 
 ```
 Cvxpy:
-        seconds elapsed: 0.6598720550537109
+        seconds elapsed: 0.6873795986175537
         problems converged: 200/200
 
 CPU lib (single thread):
-        seconds elapsed: 4.104737281799316
+        seconds elapsed: 0.9988245964050293
         problems converged: 200/200
         matching cvxpy: 197/200
 
 CPU lib (multi thread 8c/16t):
-        seconds elapsed: 0.5677616596221924
+        seconds elapsed: 0.17448711395263672
         ...
 
 GPU via OpenCL:
-        seconds elapsed: 1.6011455059051514
+        seconds elapsed: 1.546123743057251
         problems converged: 200/200
         matching cvxpy: 197/200
 ```
@@ -60,16 +60,17 @@ GPU via OpenCL:
 
 ```
 Cvxpy:
-        seconds elapsed: 0.47231149673461914
+        seconds elapsed: 0.47706174850463867
         problems converged: 100/100
 
 CPU lib (single thread):
-        seconds elapsed: 14.257242918014526
+        seconds elapsed: 2.475322723388672
         problems converged: 100/100
         matching cvxpy: 99/100
 
 CPU lib (multi thread 8c/16t):
-        seconds elapsed: 1.8579258918762207
+        seconds elapsed: 0.3572523593902588
+        ...
 
 GPU via OpenCL:
         stack frame size (523024) exceeds limit (262112) in function 'solve_lps'

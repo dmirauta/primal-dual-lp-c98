@@ -10,7 +10,7 @@ LP solver reference: [Primal-Dual Interior-Point Methods (Aarti Singh)](https://
 
 ## Test results
 
-Where N is the number of variables per problem
+Where N is the number of variables per problem. The default solver used by cvxpy appears to be ECOS.
 
 ### N=10, Nprob=500
 

@@ -12,7 +12,7 @@ ctx = cl.create_some_context()
 queue = cl.CommandQueue(ctx)
 
 parent = os.getcwd()
-build_options_base = f"-I {parent}/src"
+build_options_base = f"-I {parent}/src"  # optimiser flags don't appear to work?
 
 use_float = False
 if use_float:
